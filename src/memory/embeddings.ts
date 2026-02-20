@@ -13,14 +13,12 @@ async function getExtractor(): Promise<FeatureExtractionPipeline> {
   return extractor;
 }
 
-/* ---------- Simple LRU cache for embed() ---------- */
 const CACHE_MAX = 256;
 const embedCache = new Map<string, number[]>();
 
 function cacheGet(key: string): number[] | undefined {
   const val = embedCache.get(key);
   if (val) {
-    // Move to end (most-recently-used)
     embedCache.delete(key);
     embedCache.set(key, val);
   }
@@ -29,7 +27,6 @@ function cacheGet(key: string): number[] | undefined {
 
 function cachePut(key: string, val: number[]): void {
   if (embedCache.size >= CACHE_MAX) {
-    // Evict oldest entry
     const firstKey = embedCache.keys().next().value;
     if (firstKey !== undefined) embedCache.delete(firstKey);
   }

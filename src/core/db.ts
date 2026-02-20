@@ -115,7 +115,6 @@ export async function runMigrations(): Promise<void> {
       CREATE INDEX IF NOT EXISTS idx_objectives_search_trgm ON objectives USING GIN (search_text gin_trgm_ops);
     `);
 
-    // HNSW index for fast approximate nearest-neighbor vector search
     await client.query(`
       DO $$ BEGIN
         IF NOT EXISTS (SELECT 1 FROM pg_indexes WHERE indexname = 'idx_embeddings_hnsw') THEN
@@ -127,7 +126,6 @@ export async function runMigrations(): Promise<void> {
       END $$;
     `);
 
-    // Covering index: lets the CTE filter by user_id without hitting the main table
     await client.query(`
       DO $$ BEGIN
         IF NOT EXISTS (SELECT 1 FROM pg_indexes WHERE indexname = 'idx_embeddings_user') THEN

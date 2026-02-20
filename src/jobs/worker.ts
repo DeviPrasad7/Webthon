@@ -1,7 +1,7 @@
 import dotenv from "dotenv";
 dotenv.config();
 
-import { query} from "../core/db.js";
+import { query } from "../core/db.js";
 import { chatCompletion, contentHash } from "../core/llm.js";
 import {
   getObjectiveById,

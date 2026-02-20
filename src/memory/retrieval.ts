@@ -17,19 +17,10 @@ export interface SimilarMatch {
   completed_at: string | null;
 }
 
-/** Lowered from 0.65 — MiniLM on concatenated text rarely exceeds 0.7 for genuine matches */
 const MIN_COSINE_SIM = 0.35;
-
-/** Weight for vector similarity in the hybrid score (0-1) */
 const VECTOR_WEIGHT = 0.7;
-/** Weight for keyword similarity in the hybrid score (0-1) */
 const KEYWORD_WEIGHT = 0.3;
 
-/**
- * Hybrid retrieval: combines pgvector cosine similarity with
- * pg_trgm keyword similarity for better recall + precision.
- * Uses a CTE to avoid computing cosine distance twice.
- */
 export async function findSimilarPastDecisions(
   searchText: string,
   userId: string,
@@ -39,17 +30,16 @@ export async function findSimilarPastDecisions(
   const text = searchText.trim();
   if (!text) return [];
 
-  // Build a query-focused embedding (emphasize the core decision)
   const queryVec = await embed(text);
   const vecStr = `[${queryVec.join(",")}]`;
 
   const params: unknown[] = [
-    vecStr,         // $1 — query vector
-    userId,         // $2 — user_id
-    MIN_COSINE_SIM, // $3 — minimum cosine similarity
-    text,           // $4 — raw text for trigram keyword matching
-    VECTOR_WEIGHT,  // $5 — vector weight
-    KEYWORD_WEIGHT, // $6 — keyword weight
+    vecStr,
+    userId,
+    MIN_COSINE_SIM,
+    text,
+    VECTOR_WEIGHT,
+    KEYWORD_WEIGHT
   ];
 
   let excludeClause = "";
@@ -60,7 +50,6 @@ export async function findSimilarPastDecisions(
   const limitIdx = params.length + 1;
   params.push(limit);
 
-  // CTE computes cosine_sim once; hybrid_score blends vector + keyword
   const sql = `
     WITH vector_matches AS (
       SELECT
@@ -94,11 +83,6 @@ export async function findSimilarPastDecisions(
   return result.rows;
 }
 
-/**
- * Build the text that gets STORED as an embedding for a completed objective.
- * Weights the 'what' field heavily (repeated) so vector search is anchored
- * to the core decision, not drowned out by verbose reflections.
- */
 export function buildSearchText(fields: {
   what?: string | null;
   raw_input?: string;
@@ -112,8 +96,8 @@ export function buildSearchText(fields: {
 }): string {
   const primary = fields.what || fields.raw_input || "";
   return [
-    primary, // anchor embedding to the core decision
-    primary, // repeat for heavier weight
+    primary,
+    primary,
     fields.context,
     fields.decision_rationale,
     fields.expected_output,
@@ -123,14 +107,10 @@ export function buildSearchText(fields: {
     fields.failure_reason,
   ]
     .filter(Boolean)
-    .join(" . ") // sentence-boundary markers help MiniLM segment
+    .join(" . ")
     .slice(0, 2000);
 }
 
-/**
- * Build text for the QUERY side — focuses on the decision description
- * plus rationale. Keeps query tight so the embedding is discriminative.
- */
 export function buildQueryText(fields: {
   what?: string | null;
   context?: string | null;
