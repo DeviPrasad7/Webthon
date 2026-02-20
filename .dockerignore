@@ -1,0 +1,25 @@
+# ─── Docker build context exclusions ───────────────────────────
+__pycache__
+*.pyc
+*.pyo
+.git
+.gitignore
+.env
+.venv
+venv
+env
+node_modules
+*.egg-info
+dist
+build
+.mypy_cache
+.pytest_cache
+.coverage
+htmlcov
+*.log
+docker-compose.yml
+frontend/node_modules
+streamlit_app.py
+Dockerfile
+README.md
+*.md

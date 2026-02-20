@@ -1,0 +1,17 @@
+fastapi
+uvicorn[standard]
+pydantic
+pydantic-settings
+python-dotenv
+python-docx
+PyPDF2
+SpeechRecognition
+pydub
+python-multipart
+groq
+asyncpg
+sqlalchemy[asyncio]
+sentence-transformers
+numpy
+httpx
+redis[hiredis]
