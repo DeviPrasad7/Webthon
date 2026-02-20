@@ -2,3 +2,14 @@
 __pycache__/
 .pytest_cache/
 .mypy_cache/
+*.pyc
+*.pyo
+*.pyd
+*.log
+*.sqlite3
+*.db
+*.env
+.env.*
+.DS_Store
+.idea/
+.vscode/
