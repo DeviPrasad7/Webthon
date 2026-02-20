@@ -40,7 +40,7 @@ export default function ObjectiveList({ objectives, onSelect }: Props) {
           onClick={() => onSelect(obj.id)}
         >
           <div className="card-header">
-            <h3>{obj.what}</h3>
+            <h3>{obj.what || obj.raw_input?.slice(0, 80) || "Untitled"}</h3>
             {statusBadge(obj.status)}
           </div>
 

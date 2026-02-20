@@ -2,7 +2,7 @@ import dotenv from "dotenv";
 dotenv.config();
 
 import { query} from "../core/db.js";
-import { chatCompletion, generateEmbedding, contentHash } from "../core/llm.js";
+import { chatCompletion, contentHash } from "../core/llm.js";
 import {
   getObjectiveById,
   updateDraftResults,
@@ -10,23 +10,14 @@ import {
   notifyObjectiveUpdate,
   type PlanStep,
 } from "../objectives/queries.js";
-import { findSimilarObjectives, upsertEmbedding } from "../memory/vector.js";
+import { findSimilarPastDecisions, buildSearchText, buildQueryText, updateSearchText } from "../memory/retrieval.js";
+import { embed } from "../memory/embeddings.js";
+import { upsertEmbedding } from "../memory/vector.js";
 import { extractInsights } from "../memory/insights.js";
 import { runMigrations } from "../core/db.js";
 
 const POLL_INTERVAL = parseInt(process.env.WORKER_POLL_INTERVAL_MS || "2000", 10);
 
-// ─── PLAN DRAFTING PROMPT ──────────────────────────────────────────────
-const PLAN_SYSTEM_PROMPT = `System: You are an execution strategist. The user is providing a decision and context. Break it down into an actionable plan.
-Rule 1: Return EXACTLY 5 to 15 steps.
-Rule 2: Respond ONLY in JSON using this schema:
-{
-  "plan": [
-    { "step_id": "uuid", "desc": "string (max 10 words)", "status": "pending" }
-  ]
-}`;
-
-// ─── CLAIM A JOB (SKIP LOCKED) ────────────────────────────────────────
 async function claimJob(): Promise<any | null> {
   const result = await query(
     `UPDATE background_jobs 
@@ -44,7 +35,6 @@ async function claimJob(): Promise<any | null> {
   return result.rows[0] || null;
 }
 
-// ─── MARK JOB DONE ────────────────────────────────────────────────────
 async function markJobDone(jobId: string): Promise<void> {
   await query(
     `UPDATE background_jobs SET status = 'done' WHERE id = $1`,
@@ -52,7 +42,6 @@ async function markJobDone(jobId: string): Promise<void> {
   );
 }
 
-// ─── MARK JOB FAILED (exponential backoff) ─────────────────────────────
 async function markJobFailed(
   jobId: string,
   retryCount: number,
@@ -68,97 +57,200 @@ async function markJobFailed(
   );
 }
 
-// ─── HANDLER: DRAFT_AND_SEARCH ─────────────────────────────────────────
 async function handleDraftAndSearch(payload: { objective_id: string }): Promise<void> {
   const objective = await getObjectiveById(payload.objective_id);
   if (!objective) throw new Error(`Objective ${payload.objective_id} not found`);
 
-  // 1. Build the text to embed
-  const textToEmbed = `What: ${objective.what} Context: ${objective.context} Expected: ${objective.expected_output} Why: ${objective.decision_rationale}`;
+  console.log(`[Worker] Step 1/3 — Parsing raw input for ${objective.id}`);
+  const parseSystem = `You are a structured-data extractor. The user will give a messy brain-dump about a decision they need to make. Extract exactly these four fields.
+Respond ONLY in JSON:
+{
+  "what": "one-liner describing the decision (max 15 words)",
+  "context": "relevant background info (2-3 sentences max)",
+  "expected_output": "what a good outcome looks like (1 sentence)",
+  "decision_rationale": "why this matters / reasoning (1-2 sentences)"
+}
+If info is missing, infer a reasonable value — NEVER leave fields empty.`;
 
-  // 2. Generate embedding
-  const vector = await generateEmbedding(textToEmbed);
-
-  // 3. Query pgvector for similar past objectives
-  const similar = await findSimilarObjectives(
-    vector,
-    objective.user_id,
-    objective.id,
-    3
-  );
-
-  // Build suggested_similarities with details
-  let suggestedSimilarities: object[] = [];
-  if (similar.length > 0) {
-    const ids = similar.map((s) => s.objective_id);
-    const placeholders = ids.map((_, i) => `$${i + 1}`).join(",");
-    const detailsResult = await query(
-      `SELECT id, what, outcome, success_driver, failure_reason
-       FROM objectives WHERE id IN (${placeholders})`,
-      ids
-    );
-    suggestedSimilarities = similar.map((s) => {
-      const detail = detailsResult.rows.find((r: any) => r.id === s.objective_id);
-      return {
-        objective_id: s.objective_id,
-        distance: s.distance,
-        what: detail?.what,
-        outcome: detail?.outcome,
-        success_driver: detail?.success_driver,
-        failure_reason: detail?.failure_reason,
-      };
-    });
+  const parseResponse = await chatCompletion(parseSystem, objective.raw_input);
+  let parsedFields: { what: string; context: string; expected_output: string; decision_rationale: string };
+  try {
+    parsedFields = JSON.parse(parseResponse);
+  } catch {
+    parsedFields = {
+      what: objective.raw_input.slice(0, 200),
+      context: "",
+      expected_output: "",
+      decision_rationale: "",
+    };
   }
 
-  // 4. Call LLM to draft plan
-  const userMessage = `Decision: ${objective.what}\nContext: ${objective.context}\nExpected Output: ${objective.expected_output}\nRationale: ${objective.decision_rationale}`;
-  const planResponse = await chatCompletion(PLAN_SYSTEM_PROMPT, userMessage);
-  const parsedPlan = JSON.parse(planResponse);
-  const plan: PlanStep[] = parsedPlan.plan || [];
+  console.log(`[Worker] Step 2/3 — Retrieving similar past decisions for ${objective.id}`);
+  const searchText = buildQueryText({
+    what: parsedFields.what,
+    context: parsedFields.context,
+    decision_rationale: parsedFields.decision_rationale,
+  });
+  const similarMatches = await findSimilarPastDecisions(
+    searchText,
+    objective.user_id,
+    objective.id,
+    5
+  );
+  if (similarMatches.length > 0) {
+    console.log(`[Worker] Top match: "${similarMatches[0].what}" — ${(similarMatches[0].similarity_score * 100).toFixed(1)}%`);
+  }
 
-  // 5. Update objective with plan and similarities
-  await updateDraftResults(objective.id, plan, suggestedSimilarities);
+  console.log(`[Worker] Found ${similarMatches.length} similar past decisions`);
 
-  // 6. Notify via LISTEN/NOTIFY
+  const suggestedSimilarities = similarMatches.map((m) => ({
+    objective_id: m.objective_id,
+    similarity_score: m.similarity_score,
+    what: m.what || m.raw_input?.slice(0, 100),
+    raw_input: m.raw_input,
+    context: m.context,
+    expected_output: m.expected_output,
+    decision_rationale: m.decision_rationale,
+    outcome: m.outcome,
+    raw_reflection: m.raw_reflection,
+    success_driver: m.success_driver,
+    failure_reason: m.failure_reason,
+    plan_summary: (m.plan || [])
+      .slice(0, 5)
+      .map((s: any) => `[${s.status}] ${s.desc}`)
+      .join(", "),
+    completed_at: m.completed_at,
+  }));
+
+  console.log(`[Worker] Step 3/3 — JARVIS advising for ${objective.id}`);
+
+  let pastContext = "";
+  if (suggestedSimilarities.length > 0) {
+    pastContext = `\n\n===== CRITICAL: PAST SIMILAR DECISIONS (YOUR PRIMARY SOURCE OF TRUTH) =====
+The user has made similar decisions before. You MUST reference these patterns in your insight.
+Do NOT ignore this section — it is more important than your general knowledge.\n\n`;
+
+    pastContext += suggestedSimilarities.map((s, i) => {
+      let block = `--- Past Decision ${i + 1} (similarity: ${(s.similarity_score * 100).toFixed(0)}%) ---\n`;
+      block += `Decision: ${s.what || s.raw_input}\n`;
+      if (s.context) block += `Context: ${s.context}\n`;
+      block += `Outcome: ${s.outcome || "unknown"}\n`;
+      if (s.raw_reflection) block += `User's Reflection: "${s.raw_reflection}"\n`;
+      if (s.success_driver && s.success_driver !== "No clear pattern") {
+        block += `SUCCESS FACTOR: ${s.success_driver}\n`;
+      }
+      if (s.failure_reason && s.failure_reason !== "No clear pattern") {
+        block += `FAILURE REASON: ${s.failure_reason}\n`;
+      }
+      if (s.plan_summary) block += `Plan steps taken: ${s.plan_summary}\n`;
+      return block;
+    }).join("\n");
+
+    const successes = suggestedSimilarities.filter(s => s.outcome === "SUCCESS");
+    const failures = suggestedSimilarities.filter(s => s.outcome === "FAILURE");
+    pastContext += `\n--- PATTERN SUMMARY ---\n`;
+    pastContext += `${successes.length} similar decisions succeeded, ${failures.length} failed.\n`;
+    if (failures.length > 0) {
+      const failReasons = failures
+        .map(f => f.failure_reason)
+        .filter(r => r && r !== "No clear pattern");
+      if (failReasons.length > 0) {
+        pastContext += `Key failure reasons to AVOID: ${failReasons.join("; ")}\n`;
+      }
+    }
+    if (successes.length > 0) {
+      const successReasons = successes
+        .map(s => s.success_driver)
+        .filter(r => r && r !== "No clear pattern");
+      if (successReasons.length > 0) {
+        pastContext += `Key success factors to REPLICATE: ${successReasons.join("; ")}\n`;
+      }
+    }
+    pastContext += `\nYour insight MUST mention these past patterns. Be specific, not generic.\n`;
+  }
+
+  const jarvisSystem = `You are JARVIS, a cognitive companion for a solopreneur. You help them make better decisions by learning from their past.
+
+YOUR #1 RULE: If past similar decisions are provided below, you MUST reference them specifically in your jarvis_insight. Say things like "Last time you tried X, it failed because Y" or "Your previous success with Z was driven by W — apply that here."
+
+If NO past decisions are provided, give your best general advice but acknowledge you have no history to draw from.
+
+Your job:
+1. "jarvis_insight" — 2-4 sentences of SPECIFIC, GROUNDED advice. Reference exact past outcomes, failure reasons, and success drivers. Warn about risks based on the user's OWN history, not generic advice.
+2. Create an actionable plan (5-15 steps) that explicitly avoids past failure patterns and replicates past success patterns.
+
+Respond ONLY in JSON:
+{
+  "jarvis_insight": "Your specific, grounded advice referencing past decisions",
+  "plan": [
+    { "step_id": "uuid", "desc": "string (max 10 words)", "status": "pending" }
+  ]
+}`;
+
+  const jarvisUser = `NEW DECISION THE USER WANTS TO MAKE:
+Decision: ${parsedFields.what}
+Context: ${parsedFields.context}
+Expected Output: ${parsedFields.expected_output}
+Rationale: ${parsedFields.decision_rationale}${pastContext}`;
+
+  const jarvisResponse = await chatCompletion(jarvisSystem, jarvisUser);
+  let plan: PlanStep[] = [];
+  let jarvisInsight = "";
+  try {
+    const parsed = JSON.parse(jarvisResponse);
+    plan = parsed.plan || [];
+    jarvisInsight = parsed.jarvis_insight || "";
+  } catch {
+    plan = [{ step_id: crypto.randomUUID(), desc: "Review and plan manually", status: "pending" }];
+    jarvisInsight = "I had trouble analyzing this decision. Please review the plan manually.";
+  }
+
+  await updateDraftResults(objective.id, plan, suggestedSimilarities, parsedFields, jarvisInsight);
   await notifyObjectiveUpdate(objective.id);
 
-  console.log(`[Worker] DRAFT_AND_SEARCH completed for objective ${objective.id}`);
+  console.log(`[Worker] DRAFT_AND_SEARCH completed for objective ${objective.id} (${suggestedSimilarities.length} past matches found)`);
 }
 
-// ─── HANDLER: EXTRACT_AND_EMBED ────────────────────────────────────────
 async function handleExtractAndEmbed(payload: { objective_id: string }): Promise<void> {
   const objective = await getObjectiveById(payload.objective_id);
   if (!objective) throw new Error(`Objective ${payload.objective_id} not found`);
 
-  // 1. Extract insights from reflection
   const insights = await extractInsights(
     objective.raw_reflection || "",
-    objective.what,
+    objective.what || objective.raw_input,
     objective.outcome || ""
   );
 
-  // 2. Update objective with insights
   await updateInsights(objective.id, insights.success_driver, insights.failure_reason);
 
-  // 3. Build embedding text (includes outcome info for future similarity matching)
-  const embeddingText = `What: ${objective.what} Rationale: ${objective.decision_rationale} Outcome: ${objective.outcome} Success Driver: ${insights.success_driver} Failure Reason: ${insights.failure_reason}`;
+  const searchText = buildSearchText({
+    what: objective.what,
+    raw_input: objective.raw_input,
+    context: objective.context,
+    decision_rationale: objective.decision_rationale,
+    expected_output: objective.expected_output,
+    outcome: objective.outcome,
+    raw_reflection: objective.raw_reflection,
+    success_driver: insights.success_driver,
+    failure_reason: insights.failure_reason,
+  });
+  await updateSearchText(objective.id, searchText);
 
-  // 4. Generate embedding and content hash
-  const vector = await generateEmbedding(embeddingText);
-  const hash = await contentHash(embeddingText);
+  try {
+    const vector = await embed(searchText);
+    const hash = await contentHash(searchText);
+    await upsertEmbedding(objective.id, objective.user_id, vector, hash);
+    console.log(`[Worker] Stored 384-dim MiniLM embedding for ${objective.id}`);
+  } catch (err) {
+    console.warn(`[Worker] Vector upsert failed (non-critical):`, err);
+  }
 
-  // 5. Upsert embedding
-  await upsertEmbedding(objective.id, objective.user_id, vector, hash);
-
-  // 6. Notify
   await notifyObjectiveUpdate(objective.id);
 
   console.log(`[Worker] EXTRACT_AND_EMBED completed for objective ${objective.id}`);
 }
 
-// ─── MAIN POLLING LOOP ─────────────────────────────────────────────────
 async function pollLoop(): Promise<void> {
-  // eslint-disable-next-line no-constant-condition
   while (true) {
     try {
       const job = await claimJob();
@@ -196,7 +288,6 @@ function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-// ─── ENTRY POINT ───────────────────────────────────────────────────────
 async function main(): Promise<void> {
   console.log("[Worker] Starting...");
   await runMigrations();

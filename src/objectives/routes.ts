@@ -6,23 +6,20 @@ import {
   confirmObjectivePlan,
   updateObjectivePlan,
   completeObjectiveFlow,
+  fastTrackObjective,
   deleteObjective,
+  chatAboutPlan,
 } from "./service.js";
 import { registerSSEClient } from "../core/sse.js";
 
 const router = Router();
 
-// Temporary: extract user_id from header (replace with auth middleware)
 function getUserId(req: Request): string {
   const userId = req.headers["x-user-id"] as string;
   if (!userId) throw new Error("x-user-id header is required");
   return userId;
 }
 
-/**
- * POST /api/objectives
- * Create a new objective.
- */
 router.post("/", async (req: Request, res: Response) => {
   try {
     const userId = getUserId(req);
@@ -33,10 +30,6 @@ router.post("/", async (req: Request, res: Response) => {
   }
 });
 
-/**
- * GET /api/objectives/:id/stream
- * SSE stream for real-time updates.
- */
 router.get("/:id/stream", async (req: Request, res: Response) => {
   try {
     const objectiveId = req.params.id as string;
@@ -46,10 +39,6 @@ router.get("/:id/stream", async (req: Request, res: Response) => {
   }
 });
 
-/**
- * GET /api/objectives
- * List all objectives for the user.
- */
 router.get("/", async (req: Request, res: Response) => {
   try {
     const userId = getUserId(req);
@@ -60,10 +49,6 @@ router.get("/", async (req: Request, res: Response) => {
   }
 });
 
-/**
- * GET /api/objectives/:id
- * Fetch a single objective with dynamic progress.
- */
 router.get("/:id", async (req: Request, res: Response) => {
   try {
     const obj = await fetchObjective(req.params.id as string);
@@ -77,10 +62,6 @@ router.get("/:id", async (req: Request, res: Response) => {
   }
 });
 
-/**
- * POST /api/objectives/:id/confirm
- * Confirm the drafted plan.
- */
 router.post("/:id/confirm", async (req: Request, res: Response) => {
   try {
     await confirmObjectivePlan(req.params.id as string, req.body.plan);
@@ -90,10 +71,6 @@ router.post("/:id/confirm", async (req: Request, res: Response) => {
   }
 });
 
-/**
- * PUT /api/objectives/:id/plan
- * Update plan execution progress.
- */
 router.put("/:id/plan", async (req: Request, res: Response) => {
   try {
     await updateObjectivePlan(req.params.id as string, req.body.plan);
@@ -103,10 +80,6 @@ router.put("/:id/plan", async (req: Request, res: Response) => {
   }
 });
 
-/**
- * POST /api/objectives/:id/complete
- * Complete an objective.
- */
 router.post("/:id/complete", async (req: Request, res: Response) => {
   try {
     await completeObjectiveFlow(
@@ -120,16 +93,34 @@ router.post("/:id/complete", async (req: Request, res: Response) => {
   }
 });
 
-/**
- * DELETE /api/objectives/:id
- * Soft delete an objective.
- */
+router.post("/:id/fast-track", async (req: Request, res: Response) => {
+  try {
+    await fastTrackObjective(
+      req.params.id as string,
+      req.body.outcome,
+      req.body.raw_reflection
+    );
+    res.json({ message: "Objective fast-tracked to completion" });
+  } catch (err: any) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
 router.delete("/:id", async (req: Request, res: Response) => {
   try {
     await deleteObjective(req.params.id as string);
     res.json({ message: "Objective deleted" });
   } catch (err: any) {
     res.status(500).json({ error: err.message });
+  }
+});
+
+router.post("/:id/chat", async (req: Request, res: Response) => {
+  try {
+    const result = await chatAboutPlan(req.params.id as string, req.body.messages || []);
+    res.json(result);
+  } catch (err: any) {
+    res.status(400).json({ error: err.message });
   }
 });
 

@@ -5,40 +5,35 @@ export interface SimilarObjective {
   distance: number;
 }
 
-/**
- * Exact nearest neighbor search using pgvector's <-> operator.
- * No HNSW/IVFFlat indexes — free-tier memory safe.
- */
 export async function findSimilarObjectives(
   vector: number[],
   userId: string,
   excludeObjectiveId?: string,
-  limit: number = 3
+  limit: number = 3,
+  minSimilarity: number = 0.15
 ): Promise<SimilarObjective[]> {
   const vectorStr = `[${vector.join(",")}]`;
 
   let sql = `
-    SELECT objective_id, (vector <-> $1::vector) as distance
+    SELECT objective_id, (1.0 - (vector <=> $1::vector)) as similarity
     FROM objective_embeddings
     WHERE user_id = $2
+      AND (1.0 - (vector <=> $1::vector)) >= $3
   `;
-  const params: unknown[] = [vectorStr, userId];
+  const params: unknown[] = [vectorStr, userId, minSimilarity];
 
   if (excludeObjectiveId) {
-    sql += ` AND objective_id != $3`;
+    sql += ` AND objective_id != $${params.length + 1}`;
     params.push(excludeObjectiveId);
   }
 
-  sql += ` ORDER BY distance ASC LIMIT $${params.length + 1}`;
+  sql += ` ORDER BY vector <=> $1::vector ASC LIMIT $${params.length + 1}`;
   params.push(limit);
 
   const result = await query(sql, params);
   return result.rows;
 }
 
-/**
- * Upsert an objective embedding.
- */
 export async function upsertEmbedding(
   objectiveId: string,
   userId: string,

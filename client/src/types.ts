@@ -2,16 +2,30 @@ export interface PlanStep {
   step_id: string;
   desc: string;
   status: "pending" | "done" | "skipped";
+  notes?: string;
+}
+
+export interface ChatMessage {
+  role: "user" | "assistant";
+  content: string;
+}
+
+export interface ChatResponse {
+  reply: string;
+  revised_plan?: PlanStep[];
 }
 
 export interface Objective {
   id: string;
   user_id: string;
   status: "PLANNING" | "ACTIVE" | "COMPLETED" | "ARCHIVED";
-  what: string;
-  context: string;
-  expected_output: string;
-  decision_rationale: string;
+  raw_input: string;
+  is_voice: boolean;
+  what: string | null;
+  context: string | null;
+  expected_output: string | null;
+  decision_rationale: string | null;
+  jarvis_insight: string | null;
   plan: PlanStep[];
   outcome: string | null;
   raw_reflection: string | null;
@@ -27,11 +41,18 @@ export interface Objective {
 
 export interface SimilarObjective {
   objective_id: string;
-  distance: number;
+  similarity_score: number;
   what?: string;
+  raw_input?: string;
+  context?: string;
+  expected_output?: string;
+  decision_rationale?: string;
   outcome?: string;
+  raw_reflection?: string;
   success_driver?: string;
   failure_reason?: string;
+  plan_summary?: string;
+  completed_at?: string;
 }
 
 export interface DashboardData {
@@ -53,4 +74,14 @@ export interface DashboardData {
     failures: string;
     partials: string;
   };
+}
+
+export interface PatternObjective {
+  id: string;
+  what: string;
+  outcome: string;
+  context: string;
+  success_driver: string | null;
+  failure_reason: string | null;
+  completed_at: string;
 }

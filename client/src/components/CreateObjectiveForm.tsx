@@ -1,33 +1,36 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { createObjective } from "../api";
+import { useVoiceInput } from "../hooks/useVoiceInput";
 
 interface Props {
   onCreated: (id: string) => void;
 }
 
 export default function CreateObjectiveForm({ onCreated }: Props) {
-  const [what, setWhat] = useState("");
-  const [context, setContext] = useState("");
-  const [expectedOutput, setExpectedOutput] = useState("");
-  const [decisionRationale, setDecisionRationale] = useState("");
+  const [rawInput, setRawInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [isVoice, setIsVoice] = useState(false);
+
+  const handleTranscript = useCallback((text: string) => {
+    setRawInput(text);
+    setIsVoice(true);
+  }, []);
+
+  const { isListening, isSupported, voiceError, toggleListening } = useVoiceInput(handleTranscript);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    if (!rawInput.trim()) return;
     setError("");
     setLoading(true);
     try {
       const result = await createObjective({
-        what,
-        context,
-        expected_output: expectedOutput,
-        decision_rationale: decisionRationale,
+        raw_input: rawInput.trim(),
+        is_voice: isVoice,
       });
-      setWhat("");
-      setContext("");
-      setExpectedOutput("");
-      setDecisionRationale("");
+      setRawInput("");
+      setIsVoice(false);
       onCreated(result.id);
     } catch (err: any) {
       setError(err.message);
@@ -37,53 +40,42 @@ export default function CreateObjectiveForm({ onCreated }: Props) {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="card">
-      <h2>New Objective</h2>
+    <form onSubmit={handleSubmit} className="card brain-dump-card">
+      <h2>What's on your mind?</h2>
+      <p className="brain-dump-hint">
+        Brain-dump your decision, question, or idea. JARVIS will parse it, find relevant past decisions, and give you an actionable plan with insights.
+      </p>
 
-      <label>
-        What are you deciding?
+      <div className="brain-dump-container">
         <textarea
-          value={what}
-          onChange={(e) => setWhat(e.target.value)}
-          placeholder="e.g., Migrate auth to OAuth2"
-          required
+          className="brain-dump-textarea"
+          value={rawInput}
+          onChange={(e) => { setRawInput(e.target.value); setIsVoice(false); }}
+          placeholder="e.g., I'm thinking about switching from Stripe to LemonSqueezy for payments because Stripe's fees are killing us on the $9 plan, but I'm worried about migration complexity and losing subscribers..."
+          rows={8}
         />
-      </label>
+        {isSupported && (
+          <button
+            type="button"
+            className={`voice-btn ${isListening ? "active" : ""}`}
+            onClick={toggleListening}
+            title={isListening ? "Stop listening" : "Start voice input"}
+          >
+            🎙
+          </button>
+        )}
+      </div>
 
-      <label>
-        Context
-        <textarea
-          value={context}
-          onChange={(e) => setContext(e.target.value)}
-          placeholder="Background info, constraints, stakeholders..."
-          required
-        />
-      </label>
+      {isListening && (
+        <p className="voice-status">Listening... speak freely, JARVIS is capturing your thoughts.</p>
+      )}
 
-      <label>
-        Expected Output
-        <textarea
-          value={expectedOutput}
-          onChange={(e) => setExpectedOutput(e.target.value)}
-          placeholder="What does success look like?"
-          required
-        />
-      </label>
-
-      <label>
-        Decision Rationale
-        <textarea
-          value={decisionRationale}
-          onChange={(e) => setDecisionRationale(e.target.value)}
-          placeholder="Why this approach?"
-          required
-        />
-      </label>
+      {voiceError && <p className="error">{voiceError}</p>}
 
       {error && <p className="error">{error}</p>}
 
-      <button type="submit" disabled={loading}>
-        {loading ? "Creating..." : "Create Objective"}
+      <button type="submit" disabled={loading || !rawInput.trim()}>
+        {loading ? "Sending to JARVIS..." : "Ask JARVIS"}
       </button>
     </form>
   );

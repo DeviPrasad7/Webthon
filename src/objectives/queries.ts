@@ -4,16 +4,20 @@ export interface PlanStep {
   step_id: string;
   desc: string;
   status: "pending" | "done" | "skipped";
+  notes?: string;
 }
 
 export interface ObjectiveRow {
   id: string;
   user_id: string;
   status: string;
-  what: string;
-  context: string;
-  expected_output: string;
-  decision_rationale: string;
+  raw_input: string;
+  is_voice: boolean;
+  what: string | null;
+  context: string | null;
+  expected_output: string | null;
+  decision_rationale: string | null;
+  jarvis_insight: string | null;
   plan: PlanStep[];
   outcome: string | null;
   raw_reflection: string | null;
@@ -26,28 +30,20 @@ export interface ObjectiveRow {
   updated_at: string;
 }
 
-/**
- * Insert a new objective in PLANNING status.
- */
 export async function insertObjective(
   userId: string,
-  what: string,
-  context: string,
-  expectedOutput: string,
-  decisionRationale: string
+  rawInput: string,
+  isVoice: boolean = false
 ): Promise<string> {
   const result = await query(
-    `INSERT INTO objectives (user_id, what, context, expected_output, decision_rationale)
-     VALUES ($1, $2, $3, $4, $5)
+    `INSERT INTO objectives (user_id, raw_input, is_voice)
+     VALUES ($1, $2, $3)
      RETURNING id`,
-    [userId, what, context, expectedOutput, decisionRationale]
+    [userId, rawInput, isVoice]
   );
   return result.rows[0].id;
 }
 
-/**
- * Enqueue a background job.
- */
 export async function enqueueJob(
   type: string,
   payload: object
@@ -61,9 +57,6 @@ export async function enqueueJob(
   return result.rows[0].id;
 }
 
-/**
- * Fetch a single objective by id (non-deleted).
- */
 export async function getObjectiveById(
   id: string
 ): Promise<ObjectiveRow | null> {
@@ -74,9 +67,6 @@ export async function getObjectiveById(
   return result.rows[0] || null;
 }
 
-/**
- * Fetch all objectives for a user (non-deleted), ordered by most recent.
- */
 export async function getObjectivesByUser(
   userId: string
 ): Promise<ObjectiveRow[]> {
@@ -89,9 +79,6 @@ export async function getObjectivesByUser(
   return result.rows;
 }
 
-/**
- * Confirm the plan: overwrite plan JSONB and set status to ACTIVE.
- */
 export async function confirmPlan(
   id: string,
   plan: PlanStep[]
@@ -104,9 +91,6 @@ export async function confirmPlan(
   );
 }
 
-/**
- * Overwrite the plan JSONB (execution update).
- */
 export async function updatePlan(
   id: string,
   plan: PlanStep[]
@@ -117,9 +101,6 @@ export async function updatePlan(
   );
 }
 
-/**
- * Mark an objective as completed with outcome and reflection.
- */
 export async function completeObjective(
   id: string,
   outcome: string,
@@ -134,25 +115,49 @@ export async function completeObjective(
   );
 }
 
-/**
- * Update objective with plan and suggested similarities (from DRAFT_AND_SEARCH job).
- */
 export async function updateDraftResults(
   id: string,
   plan: PlanStep[],
-  suggestedSimilarities: object[]
+  suggestedSimilarities: object[],
+  parsedFields?: { what?: string; context?: string; expected_output?: string; decision_rationale?: string },
+  jarvisInsight?: string
 ): Promise<void> {
   await query(
     `UPDATE objectives 
-     SET plan = $1::jsonb, suggested_similarities = $2::jsonb, updated_at = NOW() 
+     SET plan = $1::jsonb, suggested_similarities = $2::jsonb,
+         what = COALESCE($4, what), context = COALESCE($5, context),
+         expected_output = COALESCE($6, expected_output),
+         decision_rationale = COALESCE($7, decision_rationale),
+         jarvis_insight = COALESCE($8, jarvis_insight),
+         updated_at = NOW() 
      WHERE id = $3`,
-    [JSON.stringify(plan), JSON.stringify(suggestedSimilarities), id]
+    [
+      JSON.stringify(plan),
+      JSON.stringify(suggestedSimilarities),
+      id,
+      parsedFields?.what || null,
+      parsedFields?.context || null,
+      parsedFields?.expected_output || null,
+      parsedFields?.decision_rationale || null,
+      jarvisInsight || null,
+    ]
   );
 }
 
-/**
- * Update objective with extracted insights (from EXTRACT_AND_EMBED job).
- */
+export async function fastTrackComplete(
+  id: string,
+  outcome: string,
+  rawReflection: string
+): Promise<void> {
+  await query(
+    `UPDATE objectives 
+     SET status = 'COMPLETED', outcome = $1, raw_reflection = $2, 
+         plan = '[]'::jsonb, completed_at = NOW(), updated_at = NOW() 
+     WHERE id = $3`,
+    [outcome, rawReflection, id]
+  );
+}
+
 export async function updateInsights(
   id: string,
   successDriver: string,
@@ -166,16 +171,10 @@ export async function updateInsights(
   );
 }
 
-/**
- * Send NOTIFY on objective_updates channel.
- */
 export async function notifyObjectiveUpdate(objectiveId: string): Promise<void> {
   await query(`NOTIFY objective_updates, '${JSON.stringify({ id: objectiveId })}'`);
 }
 
-/**
- * Soft delete an objective.
- */
 export async function softDeleteObjective(id: string): Promise<void> {
   await query(
     `UPDATE objectives SET is_deleted = true, updated_at = NOW() WHERE id = $1`,

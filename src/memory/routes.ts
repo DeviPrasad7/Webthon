@@ -1,7 +1,7 @@
 import { Router, Request, Response } from "express";
 import { query } from "../core/db.js";
 import { findSimilarObjectives } from "./vector.js";
-import { generateEmbedding } from "../core/llm.js";
+import { embed } from "./embeddings.js";
 
 const router = Router();
 
@@ -11,42 +11,34 @@ function getUserId(req: Request): string {
   return userId;
 }
 
-/**
- * GET /api/memory/dashboard
- * Returns top failure patterns, success patterns, and recent completed objectives.
- */
 router.get("/dashboard", async (req: Request, res: Response) => {
   try {
     const userId = getUserId(req);
 
-    // Top failure patterns
     const failurePatterns = await query(
       `SELECT failure_reason, COUNT(*) as count 
        FROM objectives 
-       WHERE user_id = $1 AND failure_reason IS NOT NULL AND failure_reason != 'No clear pattern'
-       GROUP BY failure_reason ORDER BY count DESC LIMIT 3`,
+       WHERE user_id = $1 AND failure_reason IS NOT NULL AND failure_reason != ''
+       GROUP BY failure_reason ORDER BY count DESC LIMIT 10`,
       [userId]
     );
 
-    // Top success patterns
     const successPatterns = await query(
       `SELECT success_driver, COUNT(*) as count 
        FROM objectives 
-       WHERE user_id = $1 AND success_driver IS NOT NULL AND success_driver != 'No clear pattern'
-       GROUP BY success_driver ORDER BY count DESC LIMIT 3`,
+       WHERE user_id = $1 AND success_driver IS NOT NULL AND success_driver != ''
+       GROUP BY success_driver ORDER BY count DESC LIMIT 10`,
       [userId]
     );
 
-    // Recent completed objectives
     const recentCompleted = await query(
-      `SELECT id, what, outcome, success_driver, failure_reason, completed_at
+      `SELECT id, COALESCE(what, LEFT(raw_input, 100)) as what, outcome, success_driver, failure_reason, completed_at
        FROM objectives
        WHERE user_id = $1 AND status = 'COMPLETED' AND is_deleted = false
-       ORDER BY completed_at DESC LIMIT 5`,
+       ORDER BY completed_at DESC LIMIT 10`,
       [userId]
     );
 
-    // Summary counts
     const stats = await query(
       `SELECT 
          COUNT(*) FILTER (WHERE status = 'COMPLETED') as completed,
@@ -71,10 +63,6 @@ router.get("/dashboard", async (req: Request, res: Response) => {
   }
 });
 
-/**
- * POST /api/memory/search
- * Semantic search across past objectives.
- */
 router.post("/search", async (req: Request, res: Response) => {
   try {
     const userId = getUserId(req);
@@ -84,10 +72,9 @@ router.post("/search", async (req: Request, res: Response) => {
       return;
     }
 
-    const vector = await generateEmbedding(text.trim());
+    const vector = await embed(text.trim());
     const similar = await findSimilarObjectives(vector, userId, undefined, 5);
 
-    // Fetch full objective details for matches
     if (similar.length === 0) {
       res.json({ results: [] });
       return;
@@ -96,13 +83,12 @@ router.post("/search", async (req: Request, res: Response) => {
     const ids = similar.map((s) => s.objective_id);
     const placeholders = ids.map((_, i) => `$${i + 1}`).join(",");
     const details = await query(
-      `SELECT id, what, context, outcome, success_driver, failure_reason
+      `SELECT id, COALESCE(what, LEFT(raw_input, 100)) as what, context, outcome, success_driver, failure_reason
        FROM objectives
        WHERE id IN (${placeholders}) AND is_deleted = false`,
       ids
     );
 
-    // Merge distance info
     const results = details.rows.map((row: any) => {
       const match = similar.find((s) => s.objective_id === row.id);
       return { ...row, distance: match?.distance };
@@ -111,6 +97,32 @@ router.post("/search", async (req: Request, res: Response) => {
     res.json({ results });
   } catch (err: any) {
     res.status(500).json({ error: err.message });
+  }
+});
+
+router.get("/pattern-objectives", async (req: Request, res: Response) => {
+  try {
+    const userId = getUserId(req);
+    const type = req.query.type as string;
+    const pattern = req.query.pattern as string;
+
+    if (!type || !pattern) {
+      res.status(400).json({ error: "type and pattern query params required" });
+      return;
+    }
+
+    const column = type === "success" ? "success_driver" : "failure_reason";
+    const result = await query(
+      `SELECT id, COALESCE(what, LEFT(raw_input, 100)) as what, outcome, context, success_driver, failure_reason, completed_at
+       FROM objectives
+       WHERE user_id = $1 AND ${column} = $2 AND is_deleted = false
+       ORDER BY completed_at DESC LIMIT 20`,
+      [userId, pattern]
+    );
+
+    res.json({ objectives: result.rows });
+  } catch (err: any) {
+    res.status(400).json({ error: err.message });
   }
 });
 

@@ -1,38 +1,25 @@
 import { Response } from "express";
 import { listenChannel } from "./db.js";
 
-/**
- * Global SSE client registry.
- * Maps objective_id -> array of connected response objects.
- */
 const sseClients = new Map<string, Response[]>();
 
-/**
- * Register an SSE client for a given objective.
- * Sets up heartbeat and cleanup on close.
- */
 export function registerSSEClient(objectiveId: string, res: Response): void {
-  // Set SSE headers
   res.setHeader("Content-Type", "text/event-stream");
   res.setHeader("Cache-Control", "no-cache");
   res.setHeader("Connection", "keep-alive");
-  res.setHeader("X-Accel-Buffering", "no"); // nginx compat
+  res.setHeader("X-Accel-Buffering", "no");
   res.flushHeaders();
 
-  // Send initial connection event
   res.write(`data: ${JSON.stringify({ event: "connected" })}\n\n`);
 
-  // 15-second heartbeat to prevent PaaS 55s timeout
   const heartbeat = setInterval(() => {
     res.write(": heartbeat\n\n");
   }, 15000);
 
-  // Add to client map
   const existing = sseClients.get(objectiveId) || [];
   existing.push(res);
   sseClients.set(objectiveId, existing);
 
-  // Cleanup on client disconnect
   res.on("close", () => {
     clearInterval(heartbeat);
     const clients = sseClients.get(objectiveId);
@@ -47,9 +34,6 @@ export function registerSSEClient(objectiveId: string, res: Response): void {
   });
 }
 
-/**
- * Send an SSE event to all clients watching a given objective.
- */
 export function sendSSEEvent(objectiveId: string, data: object): void {
   const clients = sseClients.get(objectiveId);
   if (!clients) return;
@@ -59,10 +43,6 @@ export function sendSSEEvent(objectiveId: string, data: object): void {
   }
 }
 
-/**
- * Initialize the LISTEN/NOTIFY bridge.
- * Listens on Postgres channel and forwards events to SSE clients.
- */
 export async function initSSEListener(): Promise<void> {
   await listenChannel("objective_updates", (payload) => {
     try {

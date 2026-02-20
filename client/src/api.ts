@@ -1,6 +1,6 @@
-import type { Objective, DashboardData, PlanStep } from "./types";
+import type { Objective, DashboardData, PlanStep, ChatMessage, ChatResponse, PatternObjective } from "./types";
 
-const USER_ID = "00000000-0000-0000-0000-000000000001"; // Demo user
+const USER_ID = "00000000-0000-0000-0000-000000000001";
 
 const headers = (): Record<string, string> => ({
   "Content-Type": "application/json",
@@ -15,13 +15,9 @@ async function handleResponse<T>(res: Response): Promise<T> {
   return res.json();
 }
 
-// ─── OBJECTIVES ─────────────────────────────────────────────────────────
-
 export async function createObjective(data: {
-  what: string;
-  context: string;
-  expected_output: string;
-  decision_rationale: string;
+  raw_input: string;
+  is_voice?: boolean;
 }): Promise<{ id: string }> {
   const res = await fetch("/api/objectives", {
     method: "POST",
@@ -86,14 +82,48 @@ export async function deleteObjective(id: string): Promise<void> {
   await handleResponse(res);
 }
 
-// ─── MEMORY / DASHBOARD ────────────────────────────────────────────────
+export async function fastTrackObjective(
+  id: string,
+  outcome: string,
+  raw_reflection: string
+): Promise<void> {
+  const res = await fetch(`/api/objectives/${id}/fast-track`, {
+    method: "POST",
+    headers: headers(),
+    body: JSON.stringify({ outcome, raw_reflection }),
+  });
+  await handleResponse(res);
+}
 
 export async function fetchDashboard(): Promise<DashboardData> {
   const res = await fetch("/api/memory/dashboard", { headers: headers() });
   return handleResponse(res);
 }
 
-// ─── SSE ────────────────────────────────────────────────────────────────
+export async function chatWithPlan(
+  objectiveId: string,
+  messages: ChatMessage[]
+): Promise<ChatResponse> {
+  const res = await fetch(`/api/objectives/${objectiveId}/chat`, {
+    method: "POST",
+    headers: headers(),
+    body: JSON.stringify({ messages }),
+  });
+  return handleResponse(res);
+}
+
+export async function fetchPatternObjectives(
+  type: "success" | "failure",
+  pattern: string
+): Promise<PatternObjective[]> {
+  const params = new URLSearchParams({ type, pattern });
+  const res = await fetch(`/api/memory/pattern-objectives?${params}`, {
+    headers: headers(),
+  });
+  const data = await handleResponse<{ objectives: PatternObjective[] }>(res);
+  return data.objectives;
+}
+
 
 export function subscribeToObjective(
   id: string,
@@ -108,12 +138,10 @@ export function subscribeToObjective(
         onUpdate();
       }
     } catch {
-      // ignore parse errors
     }
   };
 
   eventSource.onerror = () => {
-    // EventSource will auto-reconnect
   };
 
   return () => eventSource.close();

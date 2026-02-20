@@ -15,9 +15,6 @@ Rule 4: Respond ONLY in JSON using this schema:
   "failure_reason": "string"
 }`;
 
-/**
- * Extract success/failure insights from a raw reflection using the LLM.
- */
 export async function extractInsights(
   rawReflection: string,
   what: string,

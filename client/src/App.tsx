@@ -92,7 +92,7 @@ function App() {
           <CreateObjectiveForm onCreated={handleCreated} />
         )}
 
-        {view === "dashboard" && <Dashboard />}
+        {view === "dashboard" && <Dashboard onSelectObjective={handleSelect} />}
       </main>
     </div>
   );
