@@ -69,7 +69,7 @@ export default function LoadingState({
       <motion.p
         animate={{ opacity: [0.3, 0.8, 0.3] }}
         transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-        className="text-sm font-serif text-amber-500/60 italic tracking-wide"
+        className="text-sm text-amber-500/60 italic tracking-wide"
       >
         {text}
       </motion.p>

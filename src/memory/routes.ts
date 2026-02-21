@@ -19,6 +19,9 @@ router.get("/dashboard", async (req: Request, res: Response) => {
       `SELECT failure_reason, COUNT(*) as count 
        FROM objectives 
        WHERE user_id = $1 AND failure_reason IS NOT NULL AND failure_reason != ''
+         AND LOWER(TRIM(failure_reason)) NOT IN ('no clear pattern', 'none', 'n/a', 'no failure')
+         AND outcome IN ('FAILURE', 'PARTIAL')
+         AND is_deleted = false
        GROUP BY failure_reason ORDER BY count DESC LIMIT 10`,
       [userId]
     );
@@ -27,6 +30,9 @@ router.get("/dashboard", async (req: Request, res: Response) => {
       `SELECT success_driver, COUNT(*) as count 
        FROM objectives 
        WHERE user_id = $1 AND success_driver IS NOT NULL AND success_driver != ''
+         AND LOWER(TRIM(success_driver)) NOT IN ('no clear pattern', 'none', 'n/a', 'no success')
+         AND outcome IN ('SUCCESS', 'PARTIAL')
+         AND is_deleted = false
        GROUP BY success_driver ORDER BY count DESC LIMIT 10`,
       [userId]
     );

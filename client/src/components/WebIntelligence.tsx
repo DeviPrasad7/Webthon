@@ -124,7 +124,7 @@ export default function WebIntelligence({ objectiveId }: Props) {
           <Globe className="w-4 h-4 text-cyan-400" />
         </div>
         <div className="text-left flex-1">
-          <span className="text-[9px] font-semibold uppercase tracking-[0.25em] text-cyan-500/60 block">
+          <span className="text-[10px] font-semibold tracking-[0.1em] text-cyan-500/60 block">
             Web Intelligence
           </span>
           <span className="text-[11px] text-zinc-600">
@@ -150,7 +150,7 @@ export default function WebIntelligence({ objectiveId }: Props) {
             <div className="px-5 pb-5 space-y-4">
               {/* Strategic Brief */}
               <div className="relative bg-linear-to-br from-cyan-950/30 to-black border-l-4 border-cyan-500 rounded-r-xl p-4">
-                <p className="text-cyan-300/90 font-serif text-sm italic leading-relaxed">
+                <p className="text-cyan-300/90 text-sm italic leading-relaxed">
                   &ldquo;{synthesis.brief}&rdquo;
                 </p>
               </div>
@@ -160,7 +160,7 @@ export default function WebIntelligence({ objectiveId }: Props) {
                 <div>
                   <div className="flex items-center gap-2 mb-2">
                     <Zap className="w-3.5 h-3.5 text-amber-400" />
-                    <span className="text-[9px] font-semibold uppercase tracking-[0.2em] text-amber-500/50">
+                    <span className="text-[10px] font-semibold tracking-[0.1em] text-amber-500/50">
                       Key Insights
                     </span>
                   </div>
@@ -187,7 +187,7 @@ export default function WebIntelligence({ objectiveId }: Props) {
                   <div className="rounded-xl border border-rose-500/10 bg-rose-500/3 p-3">
                     <div className="flex items-center gap-1.5 mb-2">
                       <AlertTriangle className="w-3 h-3 text-rose-400" />
-                      <span className="text-[9px] font-semibold uppercase tracking-[0.2em] text-rose-500/60">
+                      <span className="text-[10px] font-semibold tracking-[0.1em] text-rose-500/60">
                         Risks
                       </span>
                     </div>
@@ -205,7 +205,7 @@ export default function WebIntelligence({ objectiveId }: Props) {
                   <div className="rounded-xl border border-emerald-500/10 bg-emerald-500/3 p-3">
                     <div className="flex items-center gap-1.5 mb-2">
                       <TrendingUp className="w-3 h-3 text-emerald-400" />
-                      <span className="text-[9px] font-semibold uppercase tracking-[0.2em] text-emerald-500/60">
+                      <span className="text-[10px] font-semibold tracking-[0.1em] text-emerald-500/60">
                         Opportunities
                       </span>
                     </div>
@@ -232,7 +232,7 @@ export default function WebIntelligence({ objectiveId }: Props) {
                     ) : (
                       <ChevronRight className="w-3 h-3 text-zinc-600" />
                     )}
-                    <span className="text-[9px] font-semibold uppercase tracking-[0.2em] text-zinc-600">
+                    <span className="text-[10px] font-semibold tracking-[0.1em] text-zinc-600">
                       Sources ({sources.length})
                     </span>
                   </button>

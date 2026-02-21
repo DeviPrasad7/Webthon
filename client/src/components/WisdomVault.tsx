@@ -140,7 +140,7 @@ export default function WisdomVault({ onSelectObjective }: Props) {
             <div className={`text-2xl font-semibold ${card.accent} tabular-nums`}>
               {card.value}
             </div>
-            <div className="text-[9px] uppercase tracking-[0.2em] text-zinc-600 mt-1">
+            <div className="text-[10px] tracking-[0.05em] text-zinc-600 mt-1">
               {card.label}
             </div>
           </motion.div>
@@ -156,7 +156,7 @@ export default function WisdomVault({ onSelectObjective }: Props) {
         >
           <div className="flex items-center gap-2 mb-4">
             <TrendingUp className="w-4 h-4 text-emerald-400" />
-            <span className="text-sm font-serif font-semibold text-emerald-300/80">
+            <span className="text-sm font-semibold text-emerald-300/80">
               Success Drivers
             </span>
           </div>
@@ -192,7 +192,7 @@ export default function WisdomVault({ onSelectObjective }: Props) {
         >
           <div className="flex items-center gap-2 mb-4">
             <TrendingDown className="w-4 h-4 text-rose-400" />
-            <span className="text-sm font-serif font-semibold text-rose-300/80">
+            <span className="text-sm font-semibold text-rose-300/80">
               Failure Traps
             </span>
           </div>
@@ -236,7 +236,7 @@ export default function WisdomVault({ onSelectObjective }: Props) {
                 ) : (
                   <TrendingDown className="w-4 h-4 text-rose-400" />
                 )}
-                <span className="text-sm font-serif font-semibold text-zinc-300">
+                <span className="text-sm font-semibold text-zinc-300">
                   &ldquo;{expandedPattern.pattern}&rdquo;
                 </span>
               </div>
@@ -292,7 +292,7 @@ export default function WisdomVault({ onSelectObjective }: Props) {
       >
         <div className="flex items-center gap-2 mb-4">
           <Activity className="w-4 h-4 text-amber-500/50" />
-          <span className="text-sm font-serif font-semibold text-amber-100/70">
+          <span className="text-sm font-semibold text-amber-100/70">
             Recent Completed
           </span>
         </div>

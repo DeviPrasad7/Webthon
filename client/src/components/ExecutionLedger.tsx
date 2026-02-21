@@ -143,7 +143,7 @@ export default function ExecutionLedger({ objective: obj, onRefresh }: Props) {
             transition={{ delay: 0.05 }}
             className="p-4 rounded-xl bg-black/40 border border-amber-500/8 backdrop-blur-md"
           >
-            <span className="text-[9px] font-semibold uppercase tracking-[0.2em] text-amber-500/40 block mb-1.5">
+            <span className="text-[10px] font-semibold tracking-[0.05em] text-amber-500/40 block mb-1.5">
               What
             </span>
             <p className="text-sm text-zinc-400">{obj.what}</p>
@@ -156,7 +156,7 @@ export default function ExecutionLedger({ objective: obj, onRefresh }: Props) {
             transition={{ delay: 0.1 }}
             className="p-4 rounded-xl bg-black/40 border border-amber-500/8 backdrop-blur-md"
           >
-            <span className="text-[9px] font-semibold uppercase tracking-[0.2em] text-amber-500/40 block mb-1.5">
+            <span className="text-[10px] font-semibold tracking-[0.05em] text-amber-500/40 block mb-1.5">
               Why
             </span>
             <p className="text-sm text-zinc-400">{obj.decision_rationale}</p>
@@ -171,7 +171,7 @@ export default function ExecutionLedger({ objective: obj, onRefresh }: Props) {
           transition={{ delay: 0.15 }}
           className="p-4 rounded-xl bg-black/40 border border-amber-500/8 backdrop-blur-md"
         >
-          <span className="text-[9px] font-semibold uppercase tracking-[0.2em] text-amber-500/40 block mb-1.5">
+          <span className="text-[10px] font-semibold tracking-[0.05em] text-amber-500/40 block mb-1.5">
             Context
           </span>
           <p className="text-sm text-zinc-400">{obj.context}</p>
@@ -185,7 +185,7 @@ export default function ExecutionLedger({ objective: obj, onRefresh }: Props) {
           transition={{ delay: 0.2 }}
           className="p-4 rounded-xl bg-black/40 border border-amber-500/8 backdrop-blur-md"
         >
-          <span className="text-[9px] font-semibold uppercase tracking-[0.2em] text-amber-500/40 block mb-1.5">
+          <span className="text-[10px] font-semibold tracking-[0.05em] text-amber-500/40 block mb-1.5">
             Expected Output
           </span>
           <p className="text-sm text-zinc-400">{obj.expected_output}</p>
@@ -194,7 +194,7 @@ export default function ExecutionLedger({ objective: obj, onRefresh }: Props) {
 
       <div>
         <div className="flex items-center justify-between mb-4">
-          <h3 className="text-sm font-serif font-semibold text-amber-100/80 tracking-wide">
+          <h3 className="text-sm font-semibold text-amber-100/80 tracking-wide">
             Execution Ledger
           </h3>
           {obj.status === "ACTIVE" && (
@@ -339,7 +339,7 @@ export default function ExecutionLedger({ objective: obj, onRefresh }: Props) {
             <div className="p-5 rounded-xl border border-amber-500/15 bg-amber-500/5 backdrop-blur-md space-y-3">
               <div className="flex items-center gap-2">
                 <Zap className="w-4 h-4 text-amber-400" />
-                <span className="text-sm font-serif font-semibold text-amber-300">
+                <span className="text-sm font-semibold text-amber-300">
                   Fast Track
                 </span>
               </div>
@@ -396,7 +396,7 @@ export default function ExecutionLedger({ objective: obj, onRefresh }: Props) {
             <div className="p-5 rounded-xl border border-amber-500/10 bg-black/40 backdrop-blur-xl space-y-3">
               <div className="flex items-center gap-2">
                 <MessageSquare className="w-4 h-4 text-amber-500/60" />
-                <span className="text-sm font-serif font-semibold text-amber-100/80">
+                <span className="text-sm font-semibold text-amber-100/80">
                   Discuss Plan
                 </span>
               </div>
@@ -475,7 +475,7 @@ export default function ExecutionLedger({ objective: obj, onRefresh }: Props) {
               animate={{ opacity: 1, y: 0 }}
               className="p-5 rounded-xl border border-amber-500/15 bg-black/40 backdrop-blur-xl space-y-3"
             >
-              <h3 className="text-sm font-serif font-semibold text-amber-100/80">
+              <h3 className="text-sm font-semibold text-amber-100/80">
                 Complete Objective
               </h3>
               <select
@@ -522,7 +522,7 @@ export default function ExecutionLedger({ objective: obj, onRefresh }: Props) {
           className="p-5 rounded-xl border border-amber-500/10 bg-black/30 backdrop-blur-md space-y-3"
         >
           <div className="flex items-center gap-3">
-            <span className="text-sm font-serif font-semibold text-amber-100/80">
+            <span className="text-sm font-semibold text-amber-100/80">
               Outcome
             </span>
             <span
@@ -540,12 +540,16 @@ export default function ExecutionLedger({ objective: obj, onRefresh }: Props) {
           {obj.raw_reflection && (
             <p className="text-sm text-zinc-500 italic">{obj.raw_reflection}</p>
           )}
-          {obj.success_driver && (
+          {obj.success_driver &&
+            obj.success_driver !== "No clear pattern" &&
+            (obj.outcome === "SUCCESS" || obj.outcome === "PARTIAL") && (
             <span className="inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
               {obj.success_driver}
             </span>
           )}
-          {obj.failure_reason && (
+          {obj.failure_reason &&
+            obj.failure_reason !== "No clear pattern" &&
+            (obj.outcome === "FAILURE" || obj.outcome === "PARTIAL") && (
             <span className="inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-full bg-rose-500/10 text-rose-400 border border-rose-500/20">
               {obj.failure_reason}
             </span>

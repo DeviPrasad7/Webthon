@@ -57,10 +57,10 @@ export default function ExecutiveLayout({
             <Crown className="w-4 h-4 text-black" />
           </div>
           <div className="flex items-baseline gap-2">
-            <span className="text-base font-serif font-semibold tracking-wide text-amber-50">
+            <span className="text-base font-semibold tracking-wide text-amber-50">
               JARVIS
             </span>
-            <span className="text-[9px] tracking-[0.25em] text-amber-500/60 uppercase font-medium">
+            <span className="text-[9px] tracking-[0.15em] text-amber-500/60 font-medium">
               Decision Engine
             </span>
           </div>
@@ -103,7 +103,7 @@ export default function ExecutiveLayout({
             >
               <div className="h-full w-65 border-r border-amber-500/5 bg-black/40 backdrop-blur-md flex flex-col">
                 <div className="px-4 pt-4 pb-2 flex items-center justify-between">
-                  <span className="text-[9px] font-semibold uppercase tracking-[0.25em] text-zinc-600">
+                  <span className="text-[10px] font-semibold tracking-[0.1em] text-zinc-600">
                     Decisions
                   </span>
                   <button

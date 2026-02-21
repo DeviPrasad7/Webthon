@@ -81,7 +81,7 @@ export default function ObjectiveDetail({
           Back
         </button>
         <span
-          className={`text-[9px] font-semibold uppercase tracking-[0.2em] px-2.5 py-1 rounded-full ${
+          className={`text-[10px] font-semibold tracking-[0.05em] px-2.5 py-1 rounded-full ${
             obj.status === "PLANNING"
               ? "bg-amber-500/10 text-amber-400 border border-amber-500/15"
               : obj.status === "ACTIVE"
@@ -120,7 +120,7 @@ export default function ObjectiveDetail({
       {obj.suggested_similarities &&
         obj.suggested_similarities.length > 0 && (
           <div className="space-y-2">
-            <span className="text-[9px] font-semibold uppercase tracking-[0.2em] text-amber-500/40 block">
+            <span className="text-[10px] font-semibold tracking-[0.1em] text-amber-500/40 block">
               Similar Past Decisions ({obj.suggested_similarities.length})
             </span>
             <div className="space-y-1">
@@ -185,20 +185,22 @@ export default function ObjectiveDetail({
                           exit={{ opacity: 0, height: 0 }}
                           className="px-3 pb-3 pt-1 space-y-2 border-t border-amber-500/5 overflow-hidden">
                           {sim.success_driver &&
-                            sim.success_driver !== "No clear pattern" && (
+                            sim.success_driver !== "No clear pattern" &&
+                            (!sim.outcome || sim.outcome === "SUCCESS" || sim.outcome === "PARTIAL") && (
                               <span className="inline-block text-xs px-2 py-0.5 rounded-full bg-emerald-500/8 text-emerald-400 border border-emerald-500/15 mr-1">
                                 {sim.success_driver}
                               </span>
                             )}
                           {sim.failure_reason &&
-                            sim.failure_reason !== "No clear pattern" && (
+                            sim.failure_reason !== "No clear pattern" &&
+                            (sim.outcome === "FAILURE" || sim.outcome === "PARTIAL") && (
                               <span className="inline-block text-xs px-2 py-0.5 rounded-full bg-rose-500/8 text-rose-400 border border-rose-500/15">
                                 {sim.failure_reason}
                               </span>
                             )}
                           {sim.context && (
                             <div>
-                              <span className="text-[9px] uppercase tracking-[0.2em] text-amber-500/30">
+                              <span className="text-[10px] tracking-[0.05em] text-amber-500/30">
                                 Context
                               </span>
                               <p className="text-xs text-zinc-500">
@@ -208,7 +210,7 @@ export default function ObjectiveDetail({
                           )}
                           {sim.decision_rationale && (
                             <div>
-                              <span className="text-[9px] uppercase tracking-[0.2em] text-amber-500/30">
+                              <span className="text-[10px] tracking-[0.05em] text-amber-500/30">
                                 Rationale
                               </span>
                               <p className="text-xs text-zinc-500">
@@ -218,7 +220,7 @@ export default function ObjectiveDetail({
                           )}
                           {sim.raw_reflection && (
                             <div>
-                              <span className="text-[9px] uppercase tracking-[0.2em] text-amber-500/30">
+                              <span className="text-[10px] tracking-[0.05em] text-amber-500/30">
                                 Reflection
                               </span>
                               <p className="text-xs text-zinc-500 italic">
@@ -228,7 +230,7 @@ export default function ObjectiveDetail({
                           )}
                           {sim.plan_summary && (
                             <div>
-                              <span className="text-[9px] uppercase tracking-[0.2em] text-amber-500/30">
+                              <span className="text-[10px] tracking-[0.05em] text-amber-500/30">
                                 Steps
                               </span>
                               <p className="text-xs text-zinc-500">
@@ -238,7 +240,7 @@ export default function ObjectiveDetail({
                           )}
                           {sim.completed_at && (
                             <div>
-                              <span className="text-[9px] uppercase tracking-[0.2em] text-amber-500/30">
+                              <span className="text-[10px] tracking-[0.05em] text-amber-500/30">
                                 Completed
                               </span>
                               <p className="text-xs text-zinc-500">

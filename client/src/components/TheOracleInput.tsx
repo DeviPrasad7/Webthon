@@ -60,7 +60,7 @@ export default function TheOracleInput({ onCreated }: Props) {
             className="inline-flex items-center gap-2 mb-4"
           >
             <Sparkles className="w-4 h-4 text-amber-500/60" />
-            <span className="text-[10px] font-semibold uppercase tracking-[0.3em] text-amber-500/50">
+            <span className="text-[10px] font-semibold tracking-[0.15em] text-amber-500/50">
               The Oracle
             </span>
           </motion.div>
@@ -76,7 +76,7 @@ export default function TheOracleInput({ onCreated }: Props) {
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3 }}
-          className="relative rounded-2xl border border-amber-500/10 bg-black/40 backdrop-blur-xl p-6 shadow-2xl shadow-amber-900/5"
+          className="relative rounded-2xl border border-amber-500/30 bg-black/40 backdrop-blur-xl p-6 shadow-2xl shadow-amber-900/5"
         >
           <form onSubmit={handleSubmit}>
             <div className="relative">
