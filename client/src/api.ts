@@ -1,4 +1,4 @@
-import type { Objective, DashboardData, PlanStep, ChatMessage, ChatResponse, PatternObjective } from "./types";
+import type { Objective, DashboardData, PlanStep, ChatMessage, ChatResponse, PatternObjective, WebSearchResult, ObjectiveResearch } from "./types";
 
 const USER_ID = "00000000-0000-0000-0000-000000000001";
 
@@ -145,4 +145,23 @@ export function subscribeToObjective(
   };
 
   return () => eventSource.close();
+}
+
+// ── Tavily Web Research API ──
+
+export async function searchWeb(query: string): Promise<WebSearchResult> {
+  const res = await fetch("/api/research/search", {
+    method: "POST",
+    headers: headers(),
+    body: JSON.stringify({ query }),
+  });
+  return handleResponse(res);
+}
+
+export async function researchObjective(objectiveId: string): Promise<ObjectiveResearch> {
+  const res = await fetch(`/api/research/objective/${objectiveId}`, {
+    method: "POST",
+    headers: headers(),
+  });
+  return handleResponse(res);
 }

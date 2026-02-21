@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import type { DashboardData, PatternObjective } from "../types";
 import { fetchDashboard, fetchPatternObjectives } from "../api";
+import SkeletonLoader from "./SkeletonLoader";
+import { TrendingUp, TrendingDown, Activity } from "lucide-react";
 
 interface Props {
   onSelectObjective?: (id: string) => void;
@@ -9,25 +11,42 @@ interface Props {
 export default function Dashboard({ onSelectObjective }: Props) {
   const [data, setData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
-  const [expandedPattern, setExpandedPattern] = useState<{ type: string; pattern: string } | null>(null);
+  const [expandedPattern, setExpandedPattern] = useState<{
+    type: string;
+    pattern: string;
+  } | null>(null);
   const [patternObjs, setPatternObjs] = useState<PatternObjective[]>([]);
   const [patternLoading, setPatternLoading] = useState(false);
 
   useEffect(() => {
     fetchDashboard()
       .then(setData)
-      .catch(console.error)
+      .catch(() => {})
       .finally(() => setLoading(false));
   }, []);
 
-  if (loading) return <div className="card">Loading dashboard...</div>;
-  if (!data) return <div className="card">Failed to load dashboard.</div>;
+  if (loading) return <SkeletonLoader type="dashboard" />;
+  if (!data)
+    return (
+      <p className="text-zinc-500 text-sm">Failed to load dashboard.</p>
+    );
 
   const stats = data.stats;
+  const totalDecisions =
+    Number(stats.completed) + Number(stats.active) + Number(stats.planning);
+  const completionRate =
+    totalDecisions > 0
+      ? Math.round((Number(stats.completed) / totalDecisions) * 100)
+      : 0;
 
-  async function handlePatternClick(type: "success" | "failure", pattern: string) {
+  async function handlePatternClick(
+    type: "success" | "failure",
+    pattern: string
+  ) {
     const key = `${type}:${pattern}`;
-    const currentKey = expandedPattern ? `${expandedPattern.type}:${expandedPattern.pattern}` : null;
+    const currentKey = expandedPattern
+      ? `${expandedPattern.type}:${expandedPattern.pattern}`
+      : null;
     if (currentKey === key) {
       setExpandedPattern(null);
       setPatternObjs([]);
@@ -38,8 +57,7 @@ export default function Dashboard({ onSelectObjective }: Props) {
     try {
       const objs = await fetchPatternObjectives(type, pattern);
       setPatternObjs(objs);
-    } catch (err) {
-      console.error(err);
+    } catch {
       setPatternObjs([]);
     } finally {
       setPatternLoading(false);
@@ -47,162 +65,206 @@ export default function Dashboard({ onSelectObjective }: Props) {
   }
 
   return (
-    <div className="dashboard">
-      <h2>🧠 Cognitive Dashboard</h2>
+    <div className="space-y-8">
+      <div>
+        <h1 className="text-lg font-semibold text-zinc-100 tracking-tight mb-1">
+          Cognitive Dashboard
+        </h1>
+        <p className="text-sm text-zinc-600">
+          Your decision intelligence at a glance.
+        </p>
+      </div>
 
-      <div className="stats-grid">
-        <div className="stat-card">
-          <div className="stat-number">{stats.completed}</div>
-          <div className="stat-label">Completed</div>
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        <div className="p-4 rounded-xl border border-white/10 bg-black/30 backdrop-blur-md">
+          <div className="text-2xl font-semibold text-zinc-100">
+            {totalDecisions}
+          </div>
+          <div className="text-[10px] uppercase tracking-widest text-zinc-500 mt-1">
+            Total Decisions
+          </div>
         </div>
-        <div className="stat-card">
-          <div className="stat-number">{stats.active}</div>
-          <div className="stat-label">Active</div>
+        <div className="p-4 rounded-xl border border-white/10 bg-black/30 backdrop-blur-md">
+          <div className="text-2xl font-semibold text-zinc-100">
+            {completionRate}%
+          </div>
+          <div className="text-[10px] uppercase tracking-widest text-zinc-500 mt-1">
+            Completion Rate
+          </div>
         </div>
-        <div className="stat-card">
-          <div className="stat-number">{stats.planning}</div>
-          <div className="stat-label">Planning</div>
+        <div className="p-4 rounded-xl border border-emerald-500/10 bg-emerald-500/5 backdrop-blur-md">
+          <div className="text-2xl font-semibold text-emerald-400">
+            {stats.successes}
+          </div>
+          <div className="text-[10px] uppercase tracking-widest text-emerald-400/50 mt-1">
+            Successes
+          </div>
         </div>
-        <div className="stat-card success">
-          <div className="stat-number">{stats.successes}</div>
-          <div className="stat-label">Successes</div>
-        </div>
-        <div className="stat-card danger">
-          <div className="stat-number">{stats.failures}</div>
-          <div className="stat-label">Failures</div>
-        </div>
-        <div className="stat-card warning">
-          <div className="stat-number">{stats.partials}</div>
-          <div className="stat-label">Partial</div>
+        <div className="p-4 rounded-xl border border-rose-500/10 bg-rose-500/5 backdrop-blur-md">
+          <div className="text-2xl font-semibold text-rose-400">
+            {stats.failures}
+          </div>
+          <div className="text-[10px] uppercase tracking-widest text-rose-400/50 mt-1">
+            Failures
+          </div>
         </div>
       </div>
 
-      <div className="patterns-grid">
-        <div className="card">
-          <h3>✅ Top Success Patterns</h3>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div>
+          <div className="flex items-center gap-2 mb-3">
+            <TrendingUp className="w-4 h-4 text-emerald-400" />
+            <span className="text-sm font-semibold text-zinc-300">
+              Success Drivers
+            </span>
+          </div>
           {data.success_patterns.length === 0 ? (
-            <p className="muted">No patterns yet</p>
+            <p className="text-sm text-zinc-600">No patterns yet</p>
           ) : (
-            <ul className="pattern-list">
+            <div className="flex flex-wrap gap-2">
               {data.success_patterns.map((p, i) => (
-                <li
+                <button
                   key={i}
-                  className="pattern-clickable"
-                  onClick={() => handlePatternClick("success", p.success_driver)}
+                  onClick={() =>
+                    handlePatternClick("success", p.success_driver)
+                  }
+                  className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-xs font-medium hover:bg-emerald-500/20 transition-all duration-200 ease-in-out"
                 >
-                  <span className="pattern-text">{p.success_driver}</span>
-                  <span className="pattern-count">{p.count}×</span>
-                </li>
+                  {p.success_driver}
+                  <span className="bg-emerald-500/20 text-emerald-300 text-[10px] font-semibold px-1.5 py-0.5 rounded-full leading-none">
+                    {p.count}
+                  </span>
+                </button>
               ))}
-            </ul>
+            </div>
           )}
         </div>
 
-        <div className="card">
-          <h3>⚠️ Top Failure Patterns</h3>
+        <div>
+          <div className="flex items-center gap-2 mb-3">
+            <TrendingDown className="w-4 h-4 text-rose-400" />
+            <span className="text-sm font-semibold text-zinc-300">
+              Failure Traps
+            </span>
+          </div>
           {data.failure_patterns.length === 0 ? (
-            <p className="muted">No patterns yet</p>
+            <p className="text-sm text-zinc-600">No patterns yet</p>
           ) : (
-            <ul className="pattern-list">
+            <div className="flex flex-wrap gap-2">
               {data.failure_patterns.map((p, i) => (
-                <li
+                <button
                   key={i}
-                  className="pattern-clickable"
-                  onClick={() => handlePatternClick("failure", p.failure_reason)}
+                  onClick={() =>
+                    handlePatternClick("failure", p.failure_reason)
+                  }
+                  className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 bg-rose-500/10 text-rose-400 border border-rose-500/20 text-xs font-medium hover:bg-rose-500/20 transition-all duration-200 ease-in-out"
                 >
-                  <span className="pattern-text">{p.failure_reason}</span>
-                  <span className="pattern-count">{p.count}×</span>
-                </li>
+                  {p.failure_reason}
+                  <span className="bg-rose-500/20 text-rose-300 text-[10px] font-semibold px-1.5 py-0.5 rounded-full leading-none">
+                    {p.count}
+                  </span>
+                </button>
               ))}
-            </ul>
+            </div>
           )}
         </div>
       </div>
 
       {expandedPattern && (
-        <div className="card pattern-drilldown">
-          <h3>
-            {expandedPattern.type === "success" ? "✅" : "⚠️"} Objectives: "{expandedPattern.pattern}"
-          </h3>
+        <div className="p-4 rounded-xl border border-white/10 bg-black/20 space-y-3">
+          <div className="flex items-center gap-2">
+            {expandedPattern.type === "success" ? (
+              <TrendingUp className="w-4 h-4 text-emerald-400" />
+            ) : (
+              <TrendingDown className="w-4 h-4 text-rose-400" />
+            )}
+            <span className="text-sm font-semibold text-zinc-300">
+              &ldquo;{expandedPattern.pattern}&rdquo;
+            </span>
+          </div>
           {patternLoading ? (
-            <p className="muted">Loading...</p>
+            <div className="space-y-2">
+              {[...Array(3)].map((_, i) => (
+                <div
+                  key={i}
+                  className="h-12 animate-pulse bg-zinc-800 rounded-lg"
+                />
+              ))}
+            </div>
           ) : patternObjs.length === 0 ? (
-            <p className="muted">No matching objectives found.</p>
+            <p className="text-sm text-zinc-600">
+              No matching objectives found.
+            </p>
           ) : (
-            <ul className="pattern-objectives">
+            <div className="space-y-1">
               {patternObjs.map((o) => (
-                <li
+                <button
                   key={o.id}
-                  className="pattern-obj-item"
                   onClick={() => onSelectObjective?.(o.id)}
-                  style={{ cursor: onSelectObjective ? "pointer" : "default" }}
+                  className="w-full text-left px-3 py-2 rounded-lg hover:bg-white/5 transition-all duration-200 ease-in-out flex items-center gap-2"
                 >
-                  <strong>{o.what}</strong>
+                  <span className="text-sm text-zinc-300 flex-1 truncate">
+                    {o.what}
+                  </span>
                   <span
-                    className="badge"
-                    style={{
-                      backgroundColor:
-                        o.outcome === "SUCCESS" ? "#10b981" : o.outcome === "FAILURE" ? "#ef4444" : "#f59e0b",
-                      marginLeft: 8,
-                    }}
+                    className={`text-[10px] font-semibold px-1.5 py-0.5 rounded ${
+                      o.outcome === "SUCCESS"
+                        ? "bg-emerald-500/10 text-emerald-400"
+                        : o.outcome === "FAILURE"
+                        ? "bg-rose-500/10 text-rose-400"
+                        : "bg-amber-500/10 text-amber-400"
+                    }`}
                   >
                     {o.outcome}
                   </span>
-                  <p className="muted" style={{ marginTop: 4, fontSize: "0.8rem" }}>
-                    {o.context?.slice(0, 100)}{o.context && o.context.length > 100 ? "..." : ""}
-                  </p>
-                </li>
+                </button>
               ))}
-            </ul>
+            </div>
           )}
         </div>
       )}
 
-      <div className="card">
-        <h3>📜 Recent Completed</h3>
+      <div>
+        <div className="flex items-center gap-2 mb-3">
+          <Activity className="w-4 h-4 text-zinc-500" />
+          <span className="text-sm font-semibold text-zinc-300">
+            Recent Completed
+          </span>
+        </div>
         {data.recent_completed.length === 0 ? (
-          <p className="muted">No completed objectives yet</p>
+          <p className="text-sm text-zinc-600">
+            No completed objectives yet
+          </p>
         ) : (
-          <table className="recent-table">
-            <thead>
-              <tr>
-                <th>Objective</th>
-                <th>Outcome</th>
-                <th>Success Driver</th>
-                <th>Failure Reason</th>
-                <th>Completed</th>
-              </tr>
-            </thead>
-            <tbody>
-              {data.recent_completed.map((obj) => (
-                <tr key={obj.id}>
-                  <td>{obj.what}</td>
-                  <td>
-                    <span
-                      className="badge"
-                      style={{
-                        backgroundColor:
-                          obj.outcome === "SUCCESS"
-                            ? "#10b981"
-                            : obj.outcome === "FAILURE"
-                            ? "#ef4444"
-                            : "#f59e0b",
-                      }}
-                    >
-                      {obj.outcome}
-                    </span>
-                  </td>
-                  <td>{obj.success_driver || "—"}</td>
-                  <td>{obj.failure_reason || "—"}</td>
-                  <td>
-                    {obj.completed_at
-                      ? new Date(obj.completed_at).toLocaleDateString()
-                      : "—"}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+          <div className="space-y-1">
+            {data.recent_completed.map((obj) => (
+              <div
+                key={obj.id}
+                onClick={() => onSelectObjective?.(obj.id)}
+                className="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-white/5 transition-all duration-200 ease-in-out cursor-pointer"
+              >
+                <span className="text-sm text-zinc-300 flex-1 truncate">
+                  {obj.what}
+                </span>
+                <span
+                  className={`text-[10px] font-semibold px-1.5 py-0.5 rounded ${
+                    obj.outcome === "SUCCESS"
+                      ? "bg-emerald-500/10 text-emerald-400"
+                      : obj.outcome === "FAILURE"
+                      ? "bg-rose-500/10 text-rose-400"
+                      : "bg-amber-500/10 text-amber-400"
+                  }`}
+                >
+                  {obj.outcome}
+                </span>
+                <span className="text-[10px] text-zinc-600">
+                  {obj.completed_at
+                    ? new Date(obj.completed_at).toLocaleDateString()
+                    : ""}
+                </span>
+              </div>
+            ))}
+          </div>
         )}
       </div>
     </div>

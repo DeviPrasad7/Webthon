@@ -15,6 +15,7 @@ import { embed } from "../memory/embeddings.js";
 import { upsertEmbedding } from "../memory/vector.js";
 import { extractInsights } from "../memory/insights.js";
 import { runMigrations } from "../core/db.js";
+import { researchObjective, formatResearchForLLM } from "../research/tavily.js";
 
 const POLL_INTERVAL = parseInt(process.env.WORKER_POLL_INTERVAL_MS || "2000", 10);
 
@@ -122,7 +123,22 @@ If info is missing, infer a reasonable value — NEVER leave fields empty.`;
     completed_at: m.completed_at,
   }));
 
-  console.log(`[Worker] Step 3/3 — JARVIS advising for ${objective.id}`);
+  console.log(`[Worker] Step 3/4 — Web intelligence for ${objective.id}`);
+  let webContext = "";
+  try {
+    const webResults = await researchObjective({
+      what: parsedFields.what,
+      context: parsedFields.context || undefined,
+      expected_output: parsedFields.expected_output || undefined,
+      decision_rationale: parsedFields.decision_rationale || undefined,
+    });
+    webContext = formatResearchForLLM(webResults);
+    console.log(`[Worker] Web research returned ${webResults.reduce((s, r) => s + r.sources.length, 0)} sources`);
+  } catch (err: any) {
+    console.warn(`[Worker] Web research failed (non-critical):`, err.message);
+  }
+
+  console.log(`[Worker] Step 4/4 — JARVIS advising for ${objective.id}`);
 
   let pastContext = "";
   if (suggestedSimilarities.length > 0) {
@@ -169,19 +185,21 @@ Do NOT ignore this section — it is more important than your general knowledge.
     pastContext += `\nYour insight MUST mention these past patterns. Be specific, not generic.\n`;
   }
 
-  const jarvisSystem = `You are JARVIS, a cognitive companion for a solopreneur. You help them make better decisions by learning from their past.
+  const jarvisSystem = `You are JARVIS, a cognitive companion for a solopreneur. You help them make better decisions by learning from their past AND from real-time web intelligence.
 
 YOUR #1 RULE: If past similar decisions are provided below, you MUST reference them specifically in your jarvis_insight. Say things like "Last time you tried X, it failed because Y" or "Your previous success with Z was driven by W — apply that here."
+
+YOUR #2 RULE: If web intelligence is provided, WEAVE it into your insight. Mention specific findings, cite relevant sources, and highlight risks/opportunities discovered from the web. This makes your advice current and grounded in reality.
 
 If NO past decisions are provided, give your best general advice but acknowledge you have no history to draw from.
 
 Your job:
-1. "jarvis_insight" — 2-4 sentences of SPECIFIC, GROUNDED advice. Reference exact past outcomes, failure reasons, and success drivers. Warn about risks based on the user's OWN history, not generic advice.
-2. Create an actionable plan (5-15 steps) that explicitly avoids past failure patterns and replicates past success patterns.
+1. "jarvis_insight" — 2-4 sentences of SPECIFIC, GROUNDED advice. Reference past outcomes AND web research findings. Warn about risks from BOTH the user's history and current web intelligence.
+2. Create an actionable plan (5-15 steps) that explicitly avoids past failure patterns, replicates success patterns, and incorporates web research insights.
 
 Respond ONLY in JSON:
 {
-  "jarvis_insight": "Your specific, grounded advice referencing past decisions",
+  "jarvis_insight": "Your specific, grounded advice referencing past decisions and web research",
   "plan": [
     { "step_id": "uuid", "desc": "string (max 10 words)", "status": "pending" }
   ]
@@ -191,7 +209,7 @@ Respond ONLY in JSON:
 Decision: ${parsedFields.what}
 Context: ${parsedFields.context}
 Expected Output: ${parsedFields.expected_output}
-Rationale: ${parsedFields.decision_rationale}${pastContext}`;
+Rationale: ${parsedFields.decision_rationale}${pastContext}${webContext}`;
 
   const jarvisResponse = await chatCompletion(jarvisSystem, jarvisUser);
   let plan: PlanStep[] = [];

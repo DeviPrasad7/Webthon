@@ -1,16 +1,15 @@
 import { useState, useEffect, useCallback } from "react";
-import CreateObjectiveForm from "./components/CreateObjectiveForm";
-import ObjectiveList from "./components/ObjectiveList";
+import ExecutiveLayout from "./components/ExecutiveLayout";
+import TheOracleInput from "./components/TheOracleInput";
 import ObjectiveDetail from "./components/ObjectiveDetail";
-import Dashboard from "./components/Dashboard";
+import WisdomVault from "./components/WisdomVault";
 import { fetchObjectives } from "./api";
 import type { Objective } from "./types";
-import "./App.css";
 
-type View = "list" | "detail" | "create" | "dashboard";
+type View = "create" | "detail" | "dashboard";
 
 function App() {
-  const [view, setView] = useState<View>("list");
+  const [view, setView] = useState<View>("create");
   const [objectives, setObjectives] = useState<Objective[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -19,8 +18,7 @@ function App() {
     try {
       const data = await fetchObjectives();
       setObjectives(data);
-    } catch (err) {
-      console.error("Failed to load objectives:", err);
+    } catch {
     } finally {
       setLoading(false);
     }
@@ -41,60 +39,36 @@ function App() {
     loadObjectives();
   }
 
-  function handleBack() {
+  function handleNewBrainDump() {
     setSelectedId(null);
-    setView("list");
-    loadObjectives();
+    setView("create");
+  }
+
+  function handleDashboard() {
+    setSelectedId(null);
+    setView("dashboard");
   }
 
   return (
-    <div className="app">
-      <header className="app-header">
-        <h1 onClick={() => { setView("list"); setSelectedId(null); loadObjectives(); }}>
-          🧠 Decision Memory Engine
-        </h1>
-        <nav>
-          <button
-            className={view === "list" ? "active" : ""}
-            onClick={() => { setView("list"); setSelectedId(null); loadObjectives(); }}
-          >
-            Objectives
-          </button>
-          <button
-            className={view === "create" ? "active" : ""}
-            onClick={() => setView("create")}
-          >
-            + New
-          </button>
-          <button
-            className={view === "dashboard" ? "active" : ""}
-            onClick={() => setView("dashboard")}
-          >
-            Dashboard
-          </button>
-        </nav>
-      </header>
-
-      <main className="app-main">
-        {view === "list" && (
-          loading ? (
-            <div className="card">Loading objectives...</div>
-          ) : (
-            <ObjectiveList objectives={objectives} onSelect={handleSelect} />
-          )
-        )}
-
-        {view === "detail" && selectedId && (
-          <ObjectiveDetail objectiveId={selectedId} onBack={handleBack} />
-        )}
-
-        {view === "create" && (
-          <CreateObjectiveForm onCreated={handleCreated} />
-        )}
-
-        {view === "dashboard" && <Dashboard onSelectObjective={handleSelect} />}
-      </main>
-    </div>
+    <ExecutiveLayout
+      objectives={objectives}
+      selectedId={selectedId}
+      loading={loading}
+      view={view}
+      onSelect={handleSelect}
+      onNewBrainDump={handleNewBrainDump}
+      onDashboard={handleDashboard}
+    >
+      {view === "create" && <TheOracleInput onCreated={handleCreated} />}
+      {view === "detail" && selectedId && (
+        <ObjectiveDetail
+          objectiveId={selectedId}
+          onBack={handleNewBrainDump}
+          onSelectObjective={handleSelect}
+        />
+      )}
+      {view === "dashboard" && <WisdomVault onSelectObjective={handleSelect} />}
+    </ExecutiveLayout>
   );
 }
 

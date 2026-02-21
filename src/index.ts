@@ -9,6 +9,7 @@ import { runMigrations } from "./core/db.js";
 import { initSSEListener } from "./core/sse.js";
 import objectiveRoutes from "./objectives/routes.js";
 import memoryRoutes from "./memory/routes.js";
+import researchRoutes from "./research/routes.js";
 
 const PORT = parseInt(process.env.PORT || "3001", 10);
 
@@ -22,6 +23,7 @@ async function bootstrap(): Promise<void> {
 
   app.use("/api/objectives", objectiveRoutes);
   app.use("/api/memory", memoryRoutes);
+  app.use("/api/research", researchRoutes);
 
   app.get("/api/health", (_req, res) => {
     res.json({ status: "ok", timestamp: new Date().toISOString() });

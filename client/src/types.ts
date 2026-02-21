@@ -85,3 +85,33 @@ export interface PatternObjective {
   failure_reason: string | null;
   completed_at: string;
 }
+
+// ── Tavily Web Research Types ──
+
+export interface WebSource {
+  title: string;
+  url: string;
+  snippet: string;
+  score: number;
+}
+
+export interface WebSearchResult {
+  query: string;
+  answer: string;
+  sources: WebSource[];
+  searched_at: string;
+}
+
+export interface ResearchSynthesis {
+  brief: string;
+  key_insights: string[];
+  risks_identified: string[];
+  opportunities: string[];
+}
+
+export interface ObjectiveResearch {
+  synthesis: ResearchSynthesis;
+  sources: WebSource[];
+  queries: string[];
+  searched_at: string;
+}
