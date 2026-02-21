@@ -120,7 +120,7 @@ export default function WisdomVault({ onSelectObjective }: Props) {
         <h1 className="font-serif text-xl text-amber-50/90 tracking-tight mb-1">
           Wisdom Vault
         </h1>
-        <p className="text-sm text-zinc-600">
+        <p className="text-sm text-zinc-500">
           Your decision intelligence at a glance.
         </p>
       </div>
@@ -140,7 +140,7 @@ export default function WisdomVault({ onSelectObjective }: Props) {
             <div className={`text-2xl font-semibold ${card.accent} tabular-nums`}>
               {card.value}
             </div>
-            <div className="text-[10px] tracking-[0.05em] text-zinc-600 mt-1">
+            <div className="text-[10px] tracking-[0.05em] text-zinc-500 mt-1">
               {card.label}
             </div>
           </motion.div>
@@ -161,7 +161,7 @@ export default function WisdomVault({ onSelectObjective }: Props) {
             </span>
           </div>
           {data.success_patterns.length === 0 ? (
-            <p className="text-sm text-zinc-700 italic">No patterns yet</p>
+            <p className="text-sm text-zinc-600 italic">No patterns yet</p>
           ) : (
             <div className="flex flex-wrap gap-2">
               {data.success_patterns.map((p, i) => (
@@ -197,7 +197,7 @@ export default function WisdomVault({ onSelectObjective }: Props) {
             </span>
           </div>
           {data.failure_patterns.length === 0 ? (
-            <p className="text-sm text-zinc-700 italic">No patterns yet</p>
+            <p className="text-sm text-zinc-600 italic">No patterns yet</p>
           ) : (
             <div className="flex flex-wrap gap-2">
               {data.failure_patterns.map((p, i) => (
@@ -250,7 +250,7 @@ export default function WisdomVault({ onSelectObjective }: Props) {
                   ))}
                 </div>
               ) : patternObjs.length === 0 ? (
-                <p className="text-sm text-zinc-700 italic">
+                <p className="text-sm text-zinc-600 italic">
                   No matching objectives found.
                 </p>
               ) : (
@@ -297,7 +297,7 @@ export default function WisdomVault({ onSelectObjective }: Props) {
           </span>
         </div>
         {data.recent_completed.length === 0 ? (
-          <p className="text-sm text-zinc-700 italic">
+          <p className="text-sm text-zinc-600 italic">
             No completed objectives yet
           </p>
         ) : (
@@ -325,7 +325,7 @@ export default function WisdomVault({ onSelectObjective }: Props) {
                 >
                   {obj.outcome}
                 </span>
-                <span className="text-[10px] text-zinc-700 tabular-nums">
+                <span className="text-[10px] text-zinc-600 tabular-nums">
                   {obj.completed_at
                     ? new Date(obj.completed_at).toLocaleDateString()
                     : ""}

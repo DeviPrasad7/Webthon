@@ -143,7 +143,7 @@ export default function ExecutionLedger({ objective: obj, onRefresh }: Props) {
             transition={{ delay: 0.05 }}
             className="p-4 rounded-xl bg-black/40 border border-amber-500/8 backdrop-blur-md"
           >
-            <span className="text-[10px] font-semibold tracking-[0.05em] text-amber-500/40 block mb-1.5">
+            <span className="text-[10px] font-semibold tracking-[0.05em] text-amber-500/50 block mb-1.5">
               What
             </span>
             <p className="text-sm text-zinc-400">{obj.what}</p>
@@ -156,7 +156,7 @@ export default function ExecutionLedger({ objective: obj, onRefresh }: Props) {
             transition={{ delay: 0.1 }}
             className="p-4 rounded-xl bg-black/40 border border-amber-500/8 backdrop-blur-md"
           >
-            <span className="text-[10px] font-semibold tracking-[0.05em] text-amber-500/40 block mb-1.5">
+            <span className="text-[10px] font-semibold tracking-[0.05em] text-amber-500/50 block mb-1.5">
               Why
             </span>
             <p className="text-sm text-zinc-400">{obj.decision_rationale}</p>
@@ -216,7 +216,7 @@ export default function ExecutionLedger({ objective: obj, onRefresh }: Props) {
         )}
 
         {obj.plan.length === 0 ? (
-          <p className="text-sm text-zinc-700 italic">
+          <p className="text-sm text-zinc-600 italic">
             {obj.status === "PLANNING"
               ? "Generating plan..."
               : "No plan available"}
@@ -279,11 +279,11 @@ export default function ExecutionLedger({ objective: obj, onRefresh }: Props) {
                       value={step.notes || ""}
                       onClick={(e) => e.stopPropagation()}
                       onChange={(e) => handleStepNoteChange(i, e.target.value)}
-                      className="w-full bg-transparent border-none outline-none text-xs text-zinc-600 placeholder:text-zinc-800 px-11 pb-2"
+                      className="w-full bg-transparent border-none outline-none text-xs text-zinc-500 placeholder:text-zinc-700 px-11 pb-2"
                     />
                   )}
                   {obj.status !== "ACTIVE" && step.notes && (
-                    <p className="text-xs text-zinc-600 px-11 pb-2 italic">
+                    <p className="text-xs text-zinc-500 px-11 pb-2 italic">
                       {step.notes}
                     </p>
                   )}
@@ -321,7 +321,7 @@ export default function ExecutionLedger({ objective: obj, onRefresh }: Props) {
 
           <button
             onClick={() => setShowFastTrack((v) => !v)}
-            className="w-full text-center py-3 text-amber-500/70 hover:text-amber-300 text-[11px] tracking-[0.2em] uppercase font-medium transition-colors duration-300"
+            className="w-full text-center py-3 text-amber-500/70 hover:text-amber-300 text-[11px] tracking-[0.2em] font-medium transition-colors duration-300"
           >
             Bypass Execution & Log Outcome <ArrowRight className="w-3 h-3 inline ml-1" />
           </button>
@@ -343,7 +343,7 @@ export default function ExecutionLedger({ objective: obj, onRefresh }: Props) {
                   Fast Track
                 </span>
               </div>
-              <p className="text-xs text-zinc-600">
+              <p className="text-xs text-zinc-500">
                 Skip execution and record the outcome directly.
               </p>
               <div className="space-y-2">
@@ -361,7 +361,7 @@ export default function ExecutionLedger({ objective: obj, onRefresh }: Props) {
                   onChange={(e) => setFtReflection(e.target.value)}
                   placeholder="Quick reflection..."
                   rows={2}
-                  className="w-full bg-black/60 border border-amber-500/15 rounded-lg px-3 py-2 text-sm text-zinc-200 placeholder:text-zinc-700 outline-none resize-none backdrop-blur-md"
+                  className="w-full bg-black/60 border border-amber-500/15 rounded-lg px-3 py-2 text-sm text-zinc-200 placeholder:text-zinc-600 outline-none resize-none backdrop-blur-md"
                 />
               </div>
               <div className="flex gap-2">
@@ -375,7 +375,7 @@ export default function ExecutionLedger({ objective: obj, onRefresh }: Props) {
                 </motion.button>
                 <button
                   onClick={() => setShowFastTrack(false)}
-                  className="px-4 py-2 text-sm text-zinc-600 hover:text-zinc-400 transition-colors"
+                  className="px-4 py-2 text-sm text-zinc-500 hover:text-zinc-300 transition-colors"
                 >
                   Cancel
                 </button>
@@ -402,7 +402,7 @@ export default function ExecutionLedger({ objective: obj, onRefresh }: Props) {
               </div>
               <div className="max-h-48 overflow-y-auto space-y-2">
                 {chatMessages.length === 0 && (
-                  <p className="text-xs text-zinc-700 italic">
+                  <p className="text-xs text-zinc-600 italic">
                     Ask the AI to modify, explain, or improve the plan.
                   </p>
                 )}
@@ -439,7 +439,7 @@ export default function ExecutionLedger({ objective: obj, onRefresh }: Props) {
                   onKeyDown={(e) => e.key === "Enter" && handleChat()}
                   placeholder="Suggest changes..."
                   disabled={chatLoading}
-                  className="flex-1 bg-black/60 border border-amber-500/10 rounded-lg px-3 py-2 text-sm text-zinc-200 placeholder:text-zinc-700 outline-none backdrop-blur-md"
+                  className="flex-1 bg-black/60 border border-amber-500/10 rounded-lg px-3 py-2 text-sm text-zinc-200 placeholder:text-zinc-600 outline-none backdrop-blur-md"
                 />
                 <motion.button
                   whileTap={{ scale: 0.97 }}
@@ -492,7 +492,7 @@ export default function ExecutionLedger({ objective: obj, onRefresh }: Props) {
                 onChange={(e) => setReflection(e.target.value)}
                 placeholder="What went well? What could be improved?"
                 rows={3}
-                className="w-full bg-black/60 border border-amber-500/15 rounded-lg px-3 py-2 text-sm text-zinc-200 placeholder:text-zinc-700 outline-none resize-none"
+                className="w-full bg-black/60 border border-amber-500/15 rounded-lg px-3 py-2 text-sm text-zinc-200 placeholder:text-zinc-600 outline-none resize-none"
               />
               <div className="flex gap-2">
                 <motion.button
@@ -505,7 +505,7 @@ export default function ExecutionLedger({ objective: obj, onRefresh }: Props) {
                 </motion.button>
                 <button
                   onClick={() => setShowComplete(false)}
-                  className="px-4 py-2 text-sm text-zinc-600 hover:text-zinc-400 transition-colors"
+                  className="px-4 py-2 text-sm text-zinc-500 hover:text-zinc-300 transition-colors"
                 >
                   Cancel
                 </button>

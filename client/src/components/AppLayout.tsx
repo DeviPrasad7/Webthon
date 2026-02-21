@@ -45,7 +45,7 @@ export default function AppLayout({
             <span className="text-sm font-semibold tracking-wide text-zinc-100">
               JARVIS
             </span>
-            <span className="text-[10px] tracking-widest text-zinc-600 uppercase">
+            <span className="text-[10px] tracking-widest text-zinc-500">
               DME
             </span>
           </div>
@@ -72,7 +72,7 @@ export default function AppLayout({
           </button>
 
           <div className="mt-3 mb-2 px-3">
-            <span className="text-[10px] font-semibold uppercase tracking-widest text-zinc-600">
+            <span className="text-[10px] font-semibold tracking-widest text-zinc-500">
               Recent Decisions
             </span>
           </div>
@@ -87,7 +87,7 @@ export default function AppLayout({
               ))}
             </div>
           ) : objectives.length === 0 ? (
-            <p className="text-xs text-zinc-600 px-3">
+            <p className="text-xs text-zinc-500 px-3">
               No decisions yet. Start a brain dump.
             </p>
           ) : (

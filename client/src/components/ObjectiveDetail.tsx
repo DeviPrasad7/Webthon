@@ -75,7 +75,7 @@ export default function ObjectiveDetail({
       <div className="flex items-center justify-between">
         <button
           onClick={onBack}
-          className="flex items-center gap-1 text-sm text-zinc-600 hover:text-amber-400 transition-colors duration-300"
+          className="flex items-center gap-1 text-sm text-zinc-500 hover:text-amber-400 transition-colors duration-300"
         >
           <ArrowLeft className="w-4 h-4" />
           Back
@@ -120,7 +120,7 @@ export default function ObjectiveDetail({
       {obj.suggested_similarities &&
         obj.suggested_similarities.length > 0 && (
           <div className="space-y-2">
-            <span className="text-[10px] font-semibold tracking-[0.1em] text-amber-500/40 block">
+            <span className="text-[10px] font-semibold tracking-[0.1em] text-amber-500/50 block">
               Similar Past Decisions ({obj.suggested_similarities.length})
             </span>
             <div className="space-y-1">
@@ -200,7 +200,7 @@ export default function ObjectiveDetail({
                             )}
                           {sim.context && (
                             <div>
-                              <span className="text-[10px] tracking-[0.05em] text-amber-500/30">
+                              <span className="text-[10px] tracking-[0.05em] text-amber-500/40">
                                 Context
                               </span>
                               <p className="text-xs text-zinc-500">
@@ -210,7 +210,7 @@ export default function ObjectiveDetail({
                           )}
                           {sim.decision_rationale && (
                             <div>
-                              <span className="text-[10px] tracking-[0.05em] text-amber-500/30">
+                              <span className="text-[10px] tracking-[0.05em] text-amber-500/40">
                                 Rationale
                               </span>
                               <p className="text-xs text-zinc-500">
@@ -220,7 +220,7 @@ export default function ObjectiveDetail({
                           )}
                           {sim.raw_reflection && (
                             <div>
-                              <span className="text-[10px] tracking-[0.05em] text-amber-500/30">
+                              <span className="text-[10px] tracking-[0.05em] text-amber-500/40">
                                 Reflection
                               </span>
                               <p className="text-xs text-zinc-500 italic">
@@ -230,7 +230,7 @@ export default function ObjectiveDetail({
                           )}
                           {sim.plan_summary && (
                             <div>
-                              <span className="text-[10px] tracking-[0.05em] text-amber-500/30">
+                              <span className="text-[10px] tracking-[0.05em] text-amber-500/40">
                                 Steps
                               </span>
                               <p className="text-xs text-zinc-500">
@@ -240,7 +240,7 @@ export default function ObjectiveDetail({
                           )}
                           {sim.completed_at && (
                             <div>
-                              <span className="text-[10px] tracking-[0.05em] text-amber-500/30">
+                              <span className="text-[10px] tracking-[0.05em] text-amber-500/40">
                                 Completed
                               </span>
                               <p className="text-xs text-zinc-500">

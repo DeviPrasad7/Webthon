@@ -136,7 +136,7 @@ export default function ExecutionView({ objective: obj, onRefresh }: Props) {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
         {obj.what && (
           <div className="p-3 rounded-lg bg-white/3 border border-white/5">
-            <span className="text-[10px] font-semibold uppercase tracking-widest text-zinc-600 block mb-1">
+            <span className="text-[10px] font-semibold tracking-widest text-zinc-500 block mb-1">
               What
             </span>
             <p className="text-sm text-zinc-400">{obj.what}</p>
@@ -144,7 +144,7 @@ export default function ExecutionView({ objective: obj, onRefresh }: Props) {
         )}
         {obj.decision_rationale && (
           <div className="p-3 rounded-lg bg-white/3 border border-white/5">
-            <span className="text-[10px] font-semibold uppercase tracking-widest text-zinc-600 block mb-1">
+            <span className="text-[10px] font-semibold tracking-widest text-zinc-500 block mb-1">
               Why
             </span>
             <p className="text-sm text-zinc-400">{obj.decision_rationale}</p>
@@ -246,11 +246,11 @@ export default function ExecutionView({ objective: obj, onRefresh }: Props) {
                     value={step.notes || ""}
                     onClick={(e) => e.stopPropagation()}
                     onChange={(e) => handleStepNoteChange(i, e.target.value)}
-                    className="w-full bg-transparent border-none outline-none text-xs text-zinc-500 placeholder:text-zinc-700 px-11 pb-2"
+                    className="w-full bg-transparent border-none outline-none text-xs text-zinc-500 placeholder:text-zinc-600 px-11 pb-2"
                   />
                 )}
                 {obj.status !== "ACTIVE" && step.notes && (
-                  <p className="text-xs text-zinc-600 px-11 pb-2">
+                  <p className="text-xs text-zinc-500 px-11 pb-2">
                     {step.notes}
                   </p>
                 )}
@@ -315,7 +315,7 @@ export default function ExecutionView({ objective: obj, onRefresh }: Props) {
               onChange={(e) => setFtReflection(e.target.value)}
               placeholder="Quick reflection..."
               rows={2}
-              className="w-full bg-zinc-800 border border-white/10 rounded-lg px-3 py-2 text-sm text-zinc-100 placeholder:text-zinc-600 outline-none resize-none"
+              className="w-full bg-zinc-800 border border-white/10 rounded-lg px-3 py-2 text-sm text-zinc-100 placeholder:text-zinc-500 outline-none resize-none"
             />
           </div>
           <div className="flex gap-2">
@@ -420,7 +420,7 @@ export default function ExecutionView({ objective: obj, onRefresh }: Props) {
                 onChange={(e) => setReflection(e.target.value)}
                 placeholder="What went well? What could be improved?"
                 rows={3}
-                className="w-full bg-zinc-800 border border-white/10 rounded-lg px-3 py-2 text-sm text-zinc-100 placeholder:text-zinc-600 outline-none resize-none"
+                className="w-full bg-zinc-800 border border-white/10 rounded-lg px-3 py-2 text-sm text-zinc-100 placeholder:text-zinc-500 outline-none resize-none"
               />
               <div className="flex gap-2">
                 <button

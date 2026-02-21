@@ -70,7 +70,7 @@ export default function Dashboard({ onSelectObjective }: Props) {
         <h1 className="text-lg font-semibold text-zinc-100 tracking-tight mb-1">
           Cognitive Dashboard
         </h1>
-        <p className="text-sm text-zinc-600">
+        <p className="text-sm text-zinc-500">
           Your decision intelligence at a glance.
         </p>
       </div>
@@ -80,7 +80,7 @@ export default function Dashboard({ onSelectObjective }: Props) {
           <div className="text-2xl font-semibold text-zinc-100">
             {totalDecisions}
           </div>
-          <div className="text-[10px] uppercase tracking-widest text-zinc-500 mt-1">
+          <div className="text-[10px] tracking-widest text-zinc-400 mt-1">
             Total Decisions
           </div>
         </div>
@@ -88,7 +88,7 @@ export default function Dashboard({ onSelectObjective }: Props) {
           <div className="text-2xl font-semibold text-zinc-100">
             {completionRate}%
           </div>
-          <div className="text-[10px] uppercase tracking-widest text-zinc-500 mt-1">
+          <div className="text-[10px] tracking-widest text-zinc-400 mt-1">
             Completion Rate
           </div>
         </div>
@@ -96,7 +96,7 @@ export default function Dashboard({ onSelectObjective }: Props) {
           <div className="text-2xl font-semibold text-emerald-400">
             {stats.successes}
           </div>
-          <div className="text-[10px] uppercase tracking-widest text-emerald-400/50 mt-1">
+          <div className="text-[10px] tracking-widest text-emerald-400/60 mt-1">
             Successes
           </div>
         </div>
@@ -104,7 +104,7 @@ export default function Dashboard({ onSelectObjective }: Props) {
           <div className="text-2xl font-semibold text-rose-400">
             {stats.failures}
           </div>
-          <div className="text-[10px] uppercase tracking-widest text-rose-400/50 mt-1">
+          <div className="text-[10px] tracking-widest text-rose-400/60 mt-1">
             Failures
           </div>
         </div>
@@ -119,7 +119,7 @@ export default function Dashboard({ onSelectObjective }: Props) {
             </span>
           </div>
           {data.success_patterns.length === 0 ? (
-            <p className="text-sm text-zinc-600">No patterns yet</p>
+            <p className="text-sm text-zinc-500">No patterns yet</p>
           ) : (
             <div className="flex flex-wrap gap-2">
               {data.success_patterns.map((p, i) => (
@@ -192,7 +192,7 @@ export default function Dashboard({ onSelectObjective }: Props) {
               ))}
             </div>
           ) : patternObjs.length === 0 ? (
-            <p className="text-sm text-zinc-600">
+            <p className="text-sm text-zinc-500">
               No matching objectives found.
             </p>
           ) : (
@@ -232,7 +232,7 @@ export default function Dashboard({ onSelectObjective }: Props) {
           </span>
         </div>
         {data.recent_completed.length === 0 ? (
-          <p className="text-sm text-zinc-600">
+          <p className="text-sm text-zinc-500">
             No completed objectives yet
           </p>
         ) : (
@@ -257,7 +257,7 @@ export default function Dashboard({ onSelectObjective }: Props) {
                 >
                   {obj.outcome}
                 </span>
-                <span className="text-[10px] text-zinc-600">
+                <span className="text-[10px] text-zinc-500">
                   {obj.completed_at
                     ? new Date(obj.completed_at).toLocaleDateString()
                     : ""}

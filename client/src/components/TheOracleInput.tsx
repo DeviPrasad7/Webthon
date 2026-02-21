@@ -60,14 +60,14 @@ export default function TheOracleInput({ onCreated }: Props) {
             className="inline-flex items-center gap-2 mb-4"
           >
             <Sparkles className="w-4 h-4 text-amber-500/60" />
-            <span className="text-[10px] font-semibold tracking-[0.15em] text-amber-500/50">
+            <span className="text-[10px] font-semibold tracking-[0.15em] text-amber-500/60">
               The Oracle
             </span>
           </motion.div>
           <h1 className="font-serif text-3xl md:text-4xl text-amber-50/90 tracking-tight mb-3">
             What decision weighs on you?
           </h1>
-          <p className="text-sm text-zinc-600 max-w-md mx-auto">
+          <p className="text-sm text-zinc-500 max-w-md mx-auto">
             Speak or type freely. JARVIS will parse, recall, and strategize.
           </p>
         </div>
@@ -87,7 +87,7 @@ export default function TheOracleInput({ onCreated }: Props) {
                   setIsVoice(false);
                 }}
                 placeholder="I'm considering..."
-                className="w-full bg-transparent border-none outline-none resize-none text-xl md:text-2xl text-amber-50 placeholder:text-zinc-700 leading-relaxed min-h-35 font-serif tracking-tight"
+                className="w-full bg-transparent border-none outline-none resize-none text-xl md:text-2xl text-amber-50 placeholder:text-zinc-600 leading-relaxed min-h-35 font-serif tracking-tight"
                 rows={5}
               />
 

@@ -49,7 +49,7 @@ export default function WebIntelligence({ objectiveId }: Props) {
               <span className="text-sm font-medium text-cyan-300/90 block">
                 Deep Research
               </span>
-              <span className="text-[11px] text-zinc-600">
+              <span className="text-[11px] text-zinc-500">
                 Search the web for real-time intelligence on this decision
               </span>
             </div>
@@ -80,7 +80,7 @@ export default function WebIntelligence({ objectiveId }: Props) {
           </motion.div>
           <div>
             <span className="text-sm text-cyan-300/90 font-medium block">Researching the web...</span>
-            <span className="text-[11px] text-zinc-600">Searching multiple angles, synthesizing intelligence</span>
+            <span className="text-[11px] text-zinc-500">Searching multiple angles, synthesizing intelligence</span>
           </div>
         </div>
         <div className="mt-4 space-y-2">
@@ -90,7 +90,7 @@ export default function WebIntelligence({ objectiveId }: Props) {
               initial={{ opacity: 0, x: -8 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: i * 1.2 }}
-              className="flex items-center gap-2 text-xs text-zinc-600"
+              className="flex items-center gap-2 text-xs text-zinc-500"
             >
               <motion.span
                 className="w-1.5 h-1.5 rounded-full bg-cyan-500"
@@ -124,10 +124,10 @@ export default function WebIntelligence({ objectiveId }: Props) {
           <Globe className="w-4 h-4 text-cyan-400" />
         </div>
         <div className="text-left flex-1">
-          <span className="text-[10px] font-semibold tracking-[0.1em] text-cyan-500/60 block">
+          <span className="text-[10px] font-semibold tracking-[0.1em] text-cyan-500/70 block">
             Web Intelligence
           </span>
-          <span className="text-[11px] text-zinc-600">
+          <span className="text-[11px] text-zinc-500">
             {sources.length} sources • {research.queries.length} searches • {new Date(research.searched_at).toLocaleTimeString()}
           </span>
         </div>
@@ -160,7 +160,7 @@ export default function WebIntelligence({ objectiveId }: Props) {
                 <div>
                   <div className="flex items-center gap-2 mb-2">
                     <Zap className="w-3.5 h-3.5 text-amber-400" />
-                    <span className="text-[10px] font-semibold tracking-[0.1em] text-amber-500/50">
+                    <span className="text-[10px] font-semibold tracking-[0.1em] text-amber-500/60">
                       Key Insights
                     </span>
                   </div>
@@ -187,7 +187,7 @@ export default function WebIntelligence({ objectiveId }: Props) {
                   <div className="rounded-xl border border-rose-500/10 bg-rose-500/3 p-3">
                     <div className="flex items-center gap-1.5 mb-2">
                       <AlertTriangle className="w-3 h-3 text-rose-400" />
-                      <span className="text-[10px] font-semibold tracking-[0.1em] text-rose-500/60">
+                      <span className="text-[10px] font-semibold tracking-[0.1em] text-rose-500/70">
                         Risks
                       </span>
                     </div>
@@ -205,7 +205,7 @@ export default function WebIntelligence({ objectiveId }: Props) {
                   <div className="rounded-xl border border-emerald-500/10 bg-emerald-500/3 p-3">
                     <div className="flex items-center gap-1.5 mb-2">
                       <TrendingUp className="w-3 h-3 text-emerald-400" />
-                      <span className="text-[10px] font-semibold tracking-[0.1em] text-emerald-500/60">
+                      <span className="text-[10px] font-semibold tracking-[0.1em] text-emerald-500/70">
                         Opportunities
                       </span>
                     </div>
@@ -232,7 +232,7 @@ export default function WebIntelligence({ objectiveId }: Props) {
                     ) : (
                       <ChevronRight className="w-3 h-3 text-zinc-600" />
                     )}
-                    <span className="text-[10px] font-semibold tracking-[0.1em] text-zinc-600">
+                    <span className="text-[10px] font-semibold tracking-[0.1em] text-zinc-500">
                       Sources ({sources.length})
                     </span>
                   </button>
@@ -261,10 +261,10 @@ export default function WebIntelligence({ objectiveId }: Props) {
                                 <p className="text-xs text-cyan-300/80 font-medium truncate group-hover:text-cyan-200 transition-colors">
                                   {source.title}
                                 </p>
-                                <p className="text-[11px] text-zinc-600 mt-0.5 line-clamp-2 leading-relaxed">
+                                <p className="text-[11px] text-zinc-500 mt-0.5 line-clamp-2 leading-relaxed">
                                   {source.snippet}
                                 </p>
-                                <p className="text-[10px] text-zinc-700 mt-1 truncate">
+                                <p className="text-[10px] text-zinc-600 mt-1 truncate">
                                   {source.url}
                                 </p>
                               </div>
@@ -281,7 +281,7 @@ export default function WebIntelligence({ objectiveId }: Props) {
               <button
                 onClick={handleResearch}
                 disabled={loading}
-                className="flex items-center gap-2 text-[11px] text-cyan-500/50 hover:text-cyan-400 transition-colors mt-2"
+                className="flex items-center gap-2 text-[11px] text-cyan-500/60 hover:text-cyan-400 transition-colors mt-2"
               >
                 <Search className="w-3 h-3" />
                 Research again

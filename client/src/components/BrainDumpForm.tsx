@@ -44,10 +44,10 @@ export default function BrainDumpForm({ onCreated }: Props) {
   return (
     <div className="min-h-[60vh] flex flex-col justify-center">
       <div className="mb-8">
-        <h1 className="text-zinc-500 text-sm font-medium tracking-widest uppercase mb-2">
+        <h1 className="text-zinc-400 text-sm font-medium tracking-widest mb-2">
           Brain Dump
         </h1>
-        <p className="text-zinc-600 text-sm">
+        <p className="text-zinc-500 text-sm">
           Speak or type your decision freely. JARVIS will parse, analyze, and
           plan.
         </p>
@@ -62,7 +62,7 @@ export default function BrainDumpForm({ onCreated }: Props) {
               setIsVoice(false);
             }}
             placeholder="What's on your mind..."
-            className="w-full bg-transparent border-none outline-none resize-none text-2xl md:text-3xl text-zinc-100 placeholder:text-zinc-700 leading-relaxed min-h-50 font-light tracking-tight"
+            className="w-full bg-transparent border-none outline-none resize-none text-2xl md:text-3xl text-zinc-100 placeholder:text-zinc-600 leading-relaxed min-h-50 font-light tracking-tight"
             rows={6}
           />
 

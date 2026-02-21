@@ -24,7 +24,7 @@ export default function StrategicInsightCard({ insight }: Props) {
       <div className="relative z-10">
         <div className="flex items-center gap-2 mb-3">
           <Sparkles className="w-4 h-4 text-amber-400" />
-          <span className="text-[10px] font-semibold tracking-[0.1em] text-amber-500/70">
+          <span className="text-[10px] font-semibold tracking-[0.1em] text-amber-500/80">
             Strategic Intelligence
           </span>
         </div>

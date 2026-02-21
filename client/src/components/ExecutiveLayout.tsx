@@ -60,7 +60,7 @@ export default function ExecutiveLayout({
             <span className="text-base font-semibold tracking-wide text-amber-50">
               JARVIS
             </span>
-            <span className="text-[9px] tracking-[0.15em] text-amber-500/60 font-medium">
+            <span className="text-[9px] tracking-[0.15em] text-amber-500/70 font-medium">
               Decision Engine
             </span>
           </div>
@@ -103,7 +103,7 @@ export default function ExecutiveLayout({
             >
               <div className="h-full w-65 border-r border-amber-500/5 bg-black/40 backdrop-blur-md flex flex-col">
                 <div className="px-4 pt-4 pb-2 flex items-center justify-between">
-                  <span className="text-[10px] font-semibold tracking-[0.1em] text-zinc-600">
+                  <span className="text-[10px] font-semibold tracking-[0.1em] text-zinc-500">
                     Decisions
                   </span>
                   <button
@@ -125,7 +125,7 @@ export default function ExecutiveLayout({
                       ))}
                     </div>
                   ) : objectives.length === 0 ? (
-                    <p className="text-[11px] text-zinc-700 px-3 pt-4 italic">
+                    <p className="text-[11px] text-zinc-600 px-3 pt-4 italic">
                       No decisions yet.
                     </p>
                   ) : (
